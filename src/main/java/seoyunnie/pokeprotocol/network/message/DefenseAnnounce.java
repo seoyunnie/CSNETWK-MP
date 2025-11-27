@@ -6,7 +6,7 @@ import java.util.Optional;
 
 import seoyunnie.pokeprotocol.util.NetworkUtils;
 
-public record DefenseAnnounce(int sequenceNumber) {
+public record DefenseAnnounce(int sequenceNumber) implements ReliableMessage {
     public static Optional<DefenseAnnounce> fromPacket(DatagramPacket packet) {
         Map<String, String> msgEntries = NetworkUtils.getMessageEntries(packet);
 

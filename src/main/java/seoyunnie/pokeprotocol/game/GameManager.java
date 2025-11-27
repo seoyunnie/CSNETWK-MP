@@ -86,7 +86,7 @@ public class GameManager implements Consumer<ChatFrame> {
 
     private void setupBattle() throws IOException, NoSuchElementException {
         if (client instanceof GameHostClient hostClient) {
-            hostClient.startHandshake(12345); // IDK what to do with the "seed," we're not randomizing anything...
+            hostClient.startHandshake();
 
             var netInfoFrame = new HostNetworkInfoFrame(NetworkUtils.getAddress().get(), GameHostClient.PORT);
 
@@ -98,7 +98,9 @@ public class GameManager implements Consumer<ChatFrame> {
 
             netInfoFrame.dispose();
         } else if (client instanceof GamePeerClient peerClient) {
-            peerClient.connectToHost();
+            if (!peerClient.connectToHost()) {
+                throw new IOException();
+            }
         }
 
         var pokemonSelDialog = new PokemonSelectionDialog();

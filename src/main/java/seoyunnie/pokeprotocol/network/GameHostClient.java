@@ -26,7 +26,7 @@ public class GameHostClient extends GameClient {
         super(PORT);
     }
 
-    public void startHandshake(int seed) throws IOException {
+    public void startHandshake() throws IOException {
         isListening = true;
         requestListenerThread = new Thread(() -> {
             while (isListening) {
@@ -38,7 +38,7 @@ public class GameHostClient extends GameClient {
                     HandshakeRequest.fromPacket(packet).ifPresentOrElse(
                             (r) -> {
                                 try {
-                                    sendMessage(new HandshakeResponse(seed), peer.address(), peer.port());
+                                    sendMessage(new HandshakeResponse(), peer.address(), peer.port());
 
                                     this.peer = peer;
 

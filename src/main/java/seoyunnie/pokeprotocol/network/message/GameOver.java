@@ -6,7 +6,7 @@ import java.util.Optional;
 
 import seoyunnie.pokeprotocol.util.NetworkUtils;
 
-public record GameOver(String winner, String loser, int sequenceNumber) {
+public record GameOver(String winner, String loser, int sequenceNumber) implements ReliableMessage {
     public static Optional<GameOver> fromPacket(DatagramPacket packet) {
         Map<String, String> msgEntries = NetworkUtils.getMessageEntries(packet);
 

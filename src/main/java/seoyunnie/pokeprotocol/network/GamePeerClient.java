@@ -35,10 +35,10 @@ public class GamePeerClient extends GameClient {
         sendACK(seqNum, host.address(), host.port());
     }
 
-    public Optional<Integer> connectToHost() throws IOException {
+    public boolean connectToHost() throws IOException {
         sendMessage(new HandshakeRequest());
 
-        return receiveHandshakeResponse().map((r) -> r.seed());
+        return receiveHandshakeResponse().isPresent();
     }
 
     public Optional<HandshakeResponse> receiveHandshakeResponse() throws IOException {

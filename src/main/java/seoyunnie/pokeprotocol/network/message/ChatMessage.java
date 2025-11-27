@@ -6,7 +6,8 @@ import java.util.Optional;
 
 import seoyunnie.pokeprotocol.util.NetworkUtils;
 
-public record ChatMessage(String senderName, ContentType contentType, String messageText, int sequenceNumber) {
+public record ChatMessage(String senderName, ContentType contentType, String messageText, int sequenceNumber)
+        implements ReliableMessage {
     public enum ContentType {
         TEXT,
         STICKER;

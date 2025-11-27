@@ -18,6 +18,7 @@ import seoyunnie.pokeprotocol.network.message.BattleSetup;
 import seoyunnie.pokeprotocol.network.message.CalculationConfirm;
 import seoyunnie.pokeprotocol.network.message.CalculationReport;
 import seoyunnie.pokeprotocol.network.message.DefenseAnnounce;
+import seoyunnie.pokeprotocol.network.message.GameOver;
 import seoyunnie.pokeprotocol.network.message.ResolutionRequest;
 import seoyunnie.pokeprotocol.pokemon.Pokemon;
 
@@ -159,12 +160,58 @@ public abstract class GameClient {
         return sendTimedMessage(new CalculationConfirm(sequenceNumber.getAndIncrement()));
     }
 
-    public boolean sendResolutionRequest(BattlePokemon pokemon, Move moveUsed, int damageDealt, int defenderHP)
+    public void sendResolutionRequest(BattlePokemon pokemon, Move moveUsed, int damageDealt, int defenderHP)
             throws IOException {
-        return sendTimedMessage(new ResolutionRequest(
+        sendMessage(new ResolutionRequest(
                 pokemon.getName(),
                 moveUsed.name(), damageDealt, defenderHP,
                 sequenceNumber.getAndIncrement()));
+    }
+
+    public Optional<Object> receiveCalculationConfirmation() throws IOException {
+        DatagramPacket packet = receiveBlockingPacket();
+
+        var calculationConfirmation = CalculationConfirm.fromPacket(packet).orElse(null);
+
+        if (calculationConfirmation != null) {
+            sendACK(calculationConfirmation.sequenceNumber());
+
+            return Optional.of(calculationConfirmation);
+        }
+
+        var resolutionReq = ResolutionRequest.fromPacket(packet).orElse(null);
+
+        if (resolutionReq != null) {
+            return Optional.of(resolutionReq);
+        }
+
+        return Optional.empty();
+    }
+
+    public void sendResolutionConfirmation(ResolutionRequest resolutionReq) throws IOException {
+        sendACK(resolutionReq.sequenceNumber());
+    }
+
+    public boolean receiveResolutionConfirmation() throws IOException {
+        return ACK.fromPacket(receiveBlockingPacket()).isPresent();
+    }
+
+    public boolean sendGameOver(BattlePokemon winningPokemon, BattlePokemon losingPokemon) throws IOException {
+        return sendTimedMessage(new GameOver(
+                winningPokemon.getName(), losingPokemon.getName(),
+                sequenceNumber.getAndIncrement()));
+    }
+
+    public Optional<GameOver> receiveGameOver() throws IOException {
+        var gameOver = GameOver.fromPacket(receiveBlockingPacket()).orElse(null);
+
+        if (gameOver == null) {
+            return Optional.empty();
+        }
+
+        sendACK(gameOver.sequenceNumber());
+
+        return Optional.of(gameOver);
     }
 
     public void close() {
