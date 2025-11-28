@@ -7,7 +7,6 @@ import javax.swing.JOptionPane;
 
 import com.formdev.flatlaf.FlatLightLaf;
 
-import seoyunnie.pokeprotocol.game.GameManager;
 import seoyunnie.pokeprotocol.gui.ChatFrame;
 import seoyunnie.pokeprotocol.util.NetworkUtils;
 
@@ -53,5 +52,8 @@ public class PokeProtocol {
         }
 
         new GameManager().accept(chatFrame);
+
+        chatFrame.setLocationRelativeTo(null);
+        chatFrame.setVisible(true);
     }
 }

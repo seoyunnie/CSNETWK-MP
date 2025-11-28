@@ -9,13 +9,13 @@ import javax.swing.JPanel;
 
 import seoyunnie.pokeprotocol.game.BattlePokemon;
 import seoyunnie.pokeprotocol.pokemon.PokemonSprite;
-import seoyunnie.pokeprotocol.util.ImageLoader;
+import seoyunnie.pokeprotocol.util.ImageUtils;
 
 public class BattlePanel extends JPanel {
     public static final int WIDTH = 720;
     public static final int HEIGHT = 336;
 
-    private final BufferedImage bgImg = ImageLoader.loadFromAssets("background");
+    private final BufferedImage bgImg = ImageUtils.loadFromAssets("background");
 
     private final BattlePokemon ownPokemon;
     private final BattlePokemon enemyPokemon;

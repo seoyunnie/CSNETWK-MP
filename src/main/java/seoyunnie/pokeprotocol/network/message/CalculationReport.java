@@ -7,7 +7,7 @@ import java.util.Optional;
 import seoyunnie.pokeprotocol.util.NetworkUtils;
 
 public record CalculationReport(String attacker, String moveUsed, int remainingHealth, int damageDealt,
-        int defenderHPRemaining, String statusMessage, int sequenceNumber) implements ReliableMessage {
+        int defenderHPRemaining, String statusMessage, int sequenceNumber) {
     public static Optional<CalculationReport> fromPacket(DatagramPacket packet) {
         Map<String, String> msgEntries = NetworkUtils.getMessageEntries(packet);
 

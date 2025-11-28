@@ -55,10 +55,10 @@ public final class NetworkUtils {
         return Optional.empty();
     }
 
-    public static Map<String, String> getMessageEntries(DatagramPacket packet) {
+    private static Map<String, String> getMessageEntries(String msg) {
         var msgEntries = new HashMap<String, String>();
 
-        for (String line : new String(packet.getData(), packet.getOffset(), packet.getLength()).split("\n")) {
+        for (String line : msg.split("\n")) {
             int sepIdx = line.indexOf(": ");
 
             msgEntries.put(line.substring(0, sepIdx).trim(), line.substring(sepIdx + 2).trim());
@@ -66,5 +66,13 @@ public final class NetworkUtils {
         }
 
         return msgEntries;
+    }
+
+    public static Map<String, String> getMessageEntries(DatagramPacket packet) {
+        return getMessageEntries(new String(packet.getData(), packet.getOffset(), packet.getLength()));
+    }
+
+    public static Map<String, String> getMessageEntries(StringBuilder strBuilder) {
+        return getMessageEntries(strBuilder.toString());
     }
 }

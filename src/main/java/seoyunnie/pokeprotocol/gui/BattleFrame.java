@@ -42,11 +42,4 @@ public class BattleFrame extends JFrame {
         revalidate();
         repaint();
     }
-
-    // @Override
-    // public void repaint() {
-    // super.repaint();
-
-    // battlePanel.repaint();
-    // }
 }

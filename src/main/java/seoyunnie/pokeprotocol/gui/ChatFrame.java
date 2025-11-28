@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Image;
 import java.awt.Insets;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -11,26 +12,42 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.SocketException;
 
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.JTextPane;
 import javax.swing.SwingUtilities;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
 
 import seoyunnie.pokeprotocol.network.ChatClient;
+import seoyunnie.pokeprotocol.network.message.ChatMessage;
+import seoyunnie.pokeprotocol.sticker.ChatStickers;
 
 public class ChatFrame extends JFrame {
     private static final int WIDTH = 360;
     private static final int HEIGHT = 426;
 
+    private static final int STICKER_BUTTON_SIZE = 25;
+
     private final JTextField inputField = new JTextField();
     private final JButton sendButton = new JButton("Send");
 
-    private final JTextArea historyArea = new JTextArea(10, 1);
-    private final JScrollPane historyPane = new JScrollPane(historyArea);
+    private final JButton sendStickerOButton = new JButton(
+            new ImageIcon(ChatStickers.WobbuffetMaru.icon().getScaledInstance(
+                    STICKER_BUTTON_SIZE, STICKER_BUTTON_SIZE,
+                    Image.SCALE_SMOOTH)));
+    private final JButton sendStickerXButton = new JButton(
+            new ImageIcon(ChatStickers.WobbuffetBatsu.icon().getScaledInstance(
+                    STICKER_BUTTON_SIZE, STICKER_BUTTON_SIZE,
+                    Image.SCALE_SMOOTH)));
+
+    private final JTextPane historyPane = new JTextPane();
+    private final JScrollPane historyScrollPane = new JScrollPane(historyPane);
 
     private final ChatClient client;
 
@@ -48,8 +65,26 @@ public class ChatFrame extends JFrame {
         pack();
         setResizable(false);
 
-        client.startChatMessageListener((m) -> SwingUtilities.invokeLater(
-                () -> historyArea.append(m.senderName() + ": " + m.messageText() + "\n")));
+        if (!client.isTesting()) {
+            client.startChatMessageListener((chatMsg) -> SwingUtilities.invokeLater(
+                    () -> {
+                        Document document = historyPane.getDocument();
+
+                        try {
+                            if (chatMsg.contentType() == ChatMessage.ContentType.TEXT) {
+                                document.insertString(
+                                        document.getLength(),
+                                        chatMsg.senderName() + ": " + chatMsg.messageText() + "\n",
+                                        null);
+                            } else {
+                                document.insertString(document.getLength(), chatMsg.senderName() + ": ", null);
+                                historyPane.insertIcon(chatMsg.sticker());
+                                document.insertString(document.getLength(), "\n", null);
+                            }
+                        } catch (BadLocationException e) {
+                        }
+                    }));
+        }
     }
 
     private void initComponents() {
@@ -61,7 +96,7 @@ public class ChatFrame extends JFrame {
         constraints.gridy = 0;
         constraints.insets = new Insets(10, 10, 4, 10);
         constraints.weightx = 1.0;
-        constraints.gridwidth = 2;
+        constraints.gridwidth = 4;
 
         add(new JLabel("Message Global Chat"), constraints);
 
@@ -76,26 +111,49 @@ public class ChatFrame extends JFrame {
         sendButton.setBackground(Color.BLUE);
         sendButton.setForeground(Color.WHITE);
 
+        constraints.fill = GridBagConstraints.NONE;
         constraints.gridx++;
         constraints.insets.left = 5;
-        constraints.insets.right = 10;
-        constraints.weightx = 0.1;
+        constraints.weightx = 0.0;
 
         add(sendButton, constraints);
         getRootPane().setDefaultButton(sendButton);
 
-        constraints.gridx--;
+        sendStickerOButton.setBackground(Color.WHITE);
+
+        constraints.gridx++;
+
+        add(sendStickerOButton, constraints);
+
+        sendStickerXButton.setBackground(Color.WHITE);
+
+        constraints.gridx++;
+        constraints.insets.right = 10;
+
+        add(sendStickerXButton, constraints);
+
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.gridx = 0;
         constraints.gridy++;
         constraints.insets.left = 10;
         constraints.insets.bottom = 3;
         constraints.weightx = 1.0;
-        constraints.gridwidth = 2;
+        constraints.gridwidth = 4;
 
         add(new JLabel("Chat History"), constraints);
 
-        historyArea.setLineWrap(true);
-        historyArea.setWrapStyleWord(true);
-        historyArea.setEditable(false);
+        historyPane.setEditable(false);
+
+        if (client.isTesting()) {
+            Document document = historyPane.getDocument();
+
+            try {
+                document.insertString(
+                        document.getLength(), "THIS FEATURE IS CURRENTLY DISABLED!\n\nTESTING CLIENT",
+                        null);
+            } catch (BadLocationException e) {
+            }
+        }
 
         constraints.fill = GridBagConstraints.BOTH;
         constraints.gridy++;
@@ -103,7 +161,7 @@ public class ChatFrame extends JFrame {
         constraints.insets.bottom = 10;
         constraints.weighty = 1.0;
 
-        add(historyPane, constraints);
+        add(historyScrollPane, constraints);
     }
 
     private void addListeners() {
@@ -122,6 +180,27 @@ public class ChatFrame extends JFrame {
                 JOptionPane.showMessageDialog(
                         this,
                         "The message could not be sent.", "Failed to Send",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        sendStickerOButton.addActionListener((evt) -> {
+            try {
+                client.sendSticker(new ImageIcon(ChatStickers.WobbuffetMaru.icon()));
+            } catch (IOException e) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "The sticker could not be sent.", "Failed to Send",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        });
+        sendStickerXButton.addActionListener((evt) -> {
+            try {
+                client.sendSticker(new ImageIcon(ChatStickers.WobbuffetBatsu.icon()));
+            } catch (IOException e) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "The sticker could not be sent.", "Failed to Send",
                         JOptionPane.ERROR_MESSAGE);
             }
         });

@@ -6,7 +6,7 @@ import java.util.Optional;
 
 import seoyunnie.pokeprotocol.util.NetworkUtils;
 
-public record CalculationConfirm(int sequenceNumber) implements ReliableMessage {
+public record CalculationConfirm(int sequenceNumber) {
     public static Optional<CalculationConfirm> fromPacket(DatagramPacket packet) {
         Map<String, String> msgEntries = NetworkUtils.getMessageEntries(packet);
 

@@ -3,13 +3,11 @@ package seoyunnie.pokeprotocol.pokemon;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.ImageObserver;
-
-import seoyunnie.pokeprotocol.util.ImageLoader;
+import seoyunnie.pokeprotocol.util.ImageUtils;
 
 public class PokemonSprite {
     public enum Direction {
-        FRONT,
-        BACK;
+        FRONT, BACK;
     }
 
     public static final int WIDTH = 96;
@@ -27,8 +25,8 @@ public class PokemonSprite {
     private final BufferedImage back;
 
     public PokemonSprite(String pokemonName) {
-        this.front = ImageLoader.loadFromAssets("sprites/" + pokemonName + "-front");
-        this.back = ImageLoader.loadFromAssets("sprites/" + pokemonName + "-back");
+        this.front = ImageUtils.loadFromAssets("sprites/" + pokemonName + "-front");
+        this.back = ImageUtils.loadFromAssets("sprites/" + pokemonName + "-back");
     }
 
     public PokemonSprite(Pokemon pokemon) {
@@ -36,14 +34,10 @@ public class PokemonSprite {
     }
 
     public void draw(Graphics2D graphics2d, Direction direction, int x, int y, int scale, ImageObserver imgObserver) {
-        graphics2d.drawImage(
-                switch (direction) {
-                    case Direction.FRONT -> front;
-                    case Direction.BACK -> back;
-                },
-                x, y,
-                WIDTH * scale, HEIGHT * scale,
-                imgObserver);
+        graphics2d.drawImage(switch (direction) {
+            case Direction.FRONT -> front;
+            case Direction.BACK -> back;
+        }, x, y, WIDTH * scale, HEIGHT * scale, imgObserver);
     }
 
     public void drawOwn(Graphics2D graphics2d, ImageObserver imgObserver) {
