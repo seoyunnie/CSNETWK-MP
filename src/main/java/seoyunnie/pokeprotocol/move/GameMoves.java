@@ -1,13 +1,13 @@
 package seoyunnie.pokeprotocol.move;
 
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import seoyunnie.pokeprotocol.type.GameTypes;
 
 public final class GameMoves {
-    private static final Set<Move> MOVES = new HashSet<>();
+    private static final List<Move> MOVES = new ArrayList<>();
 
     public static final Move ICE_BEAM = add(new Move("Ice Beam", GameTypes.ICE, 9, true));
     public static final Move BLIZZARD = add(new Move("Blizzard", GameTypes.ICE, 11, true));
@@ -26,8 +26,7 @@ public final class GameMoves {
     public static final Move SCALD = add(new Move("Scald", GameTypes.WATER, 8, true));
     public static final Move ALLURING_VOICE = add(new Move("Alluring Voice", GameTypes.FAIRY, 8, true));
 
-    private GameMoves() {
-    }
+    private GameMoves() {}
 
     private static Move add(Move move) {
         MOVES.add(move);

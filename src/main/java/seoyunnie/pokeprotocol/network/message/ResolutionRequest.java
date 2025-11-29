@@ -25,8 +25,7 @@ public record ResolutionRequest(String attacker, String moveUsed, int damageDeal
 
     @Override
     public String toString() {
-        return String.join(
-                "\n",
+        return String.join("\n",
                 "message_type: " + MessageType.RESOLUTION_REQUEST,
                 "attacker: " + attacker,
                 "move_used: " + moveUsed,

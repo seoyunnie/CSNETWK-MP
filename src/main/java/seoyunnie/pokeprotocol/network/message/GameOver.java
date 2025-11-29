@@ -22,8 +22,7 @@ public record GameOver(String winner, String loser, int sequenceNumber) {
 
     @Override
     public String toString() {
-        return String.join(
-                "\n",
+        return String.join("\n",
                 "message_type: " + MessageType.GAME_OVER,
                 "winner: " + winner,
                 "loser: " + loser,

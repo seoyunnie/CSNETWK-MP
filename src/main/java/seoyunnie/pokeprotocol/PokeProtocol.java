@@ -7,7 +7,7 @@ import javax.swing.JOptionPane;
 
 import com.formdev.flatlaf.FlatLightLaf;
 
-import seoyunnie.pokeprotocol.gui.ChatFrame;
+import seoyunnie.pokeprotocol.gui.chat.ChatFrame;
 import seoyunnie.pokeprotocol.util.NetworkUtils;
 
 public class PokeProtocol {
@@ -17,17 +17,13 @@ public class PokeProtocol {
         InetAddress broadcastAddr = NetworkUtils.getBroadcastAddress().orElse(null);
 
         if (broadcastAddr == null) {
-            JOptionPane.showMessageDialog(
-                    null,
-                    "The broadcast address could not be found.", "Unknown Broadcast Address",
-                    JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, "The broadcast address could not be found.",
+                    "Unknown Broadcast Address", JOptionPane.ERROR_MESSAGE);
 
             return;
         }
 
-        String username = JOptionPane.showInputDialog(
-                null,
-                "Input your preferred username:", "Login",
+        String username = JOptionPane.showInputDialog(null, "Input your preferred username:", "Login",
                 JOptionPane.PLAIN_MESSAGE);
 
         if (username == null) {
@@ -43,15 +39,13 @@ public class PokeProtocol {
         } catch (SocketException e) {
             e.printStackTrace();
 
-            JOptionPane.showMessageDialog(
-                    null,
-                    "A network-related issue was encountered.", "Network Error",
+            JOptionPane.showMessageDialog(null, "A network-related issue was encountered.", "Network Error",
                     JOptionPane.ERROR_MESSAGE);
 
             return;
         }
 
-        new GameManager().accept(chatFrame);
+        // new GameManager().accept(chatFrame);
 
         chatFrame.setLocationRelativeTo(null);
         chatFrame.setVisible(true);

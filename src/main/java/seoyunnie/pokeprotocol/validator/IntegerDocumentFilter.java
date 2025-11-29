@@ -5,7 +5,7 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
 
 public class IntegerDocumentFilter extends DocumentFilter {
-    private boolean isInteger(String str) {
+    private boolean isInt(String str) {
         if (str.isEmpty()) {
             return true;
         }
@@ -22,7 +22,7 @@ public class IntegerDocumentFilter extends DocumentFilter {
     @Override
     public void insertString(FilterBypass filterBypass, int offset, String str, AttributeSet attrSet)
             throws BadLocationException {
-        if (isInteger(str)) {
+        if (isInt(str)) {
             super.insertString(filterBypass, offset, str, attrSet);
         }
     }
@@ -30,7 +30,7 @@ public class IntegerDocumentFilter extends DocumentFilter {
     @Override
     public void replace(FilterBypass filterBypass, int offset, int len, String text, AttributeSet attrSet)
             throws BadLocationException {
-        if (isInteger(text)) {
+        if (isInt(text)) {
             super.replace(filterBypass, offset, len, text, attrSet);
         }
     }

@@ -1,11 +1,11 @@
 package seoyunnie.pokeprotocol.type;
 
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public final class GameTypes {
-    private static final Set<Type> TYPES = new HashSet<>();
+    private static final List<Type> TYPES = new ArrayList<>();
 
     public static final Type NORMAL = add(new Type("normal"));
     public static final Type FIGHTING = add(new Type("fighting"));
@@ -169,8 +169,7 @@ public final class GameTypes {
                         Map.entry(DARK, 2f))));
     }
 
-    private GameTypes() {
-    }
+    private GameTypes() {}
 
     private static Type add(Type type) {
         TYPES.add(type);

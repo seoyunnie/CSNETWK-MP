@@ -19,6 +19,8 @@ public record DefenseAnnounce(int sequenceNumber) {
 
     @Override
     public String toString() {
-        return String.join("\n", "message_type: " + MessageType.DEFENSE_ANNOUNCE, "sequence_number: " + sequenceNumber);
+        return String.join("\n",
+                "message_type: " + MessageType.DEFENSE_ANNOUNCE,
+                "sequence_number: " + sequenceNumber);
     }
 }

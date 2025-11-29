@@ -24,9 +24,9 @@ public final class NetworkUtils {
             return Optional.of(s.getLocalAddress());
         } catch (IOException e) {
             e.printStackTrace();
-        }
 
-        return Optional.empty();
+            return Optional.empty();
+        }
     }
 
     public static Optional<InetAddress> getBroadcastAddress() {

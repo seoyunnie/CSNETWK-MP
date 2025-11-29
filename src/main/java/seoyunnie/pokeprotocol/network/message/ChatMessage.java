@@ -1,32 +1,24 @@
 package seoyunnie.pokeprotocol.network.message;
 
-import java.awt.Image;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
-import java.util.Base64;
 import java.util.Map;
 import java.util.Optional;
 
-import javax.imageio.ImageIO;
-import javax.swing.ImageIcon;
-
-import seoyunnie.pokeprotocol.util.ImageUtils;
+import seoyunnie.pokeprotocol.sticker.Sticker;
 import seoyunnie.pokeprotocol.util.NetworkUtils;
 
-public record ChatMessage(String senderName, ContentType contentType, String messageText, ImageIcon sticker,
+public record ChatMessage(String senderName, ContentType contentType, String messageText, Sticker sticker,
         int sequenceNumber) {
     public enum ContentType {
-        TEXT,
-        STICKER;
+        TEXT, STICKER;
     }
 
     public ChatMessage(String senderName, String msgText, int seqNum) {
         this(senderName, ContentType.TEXT, msgText, null, seqNum);
     }
 
-    public ChatMessage(String senderName, ImageIcon sticker, int seqNum) {
+    public ChatMessage(String senderName, Sticker sticker, int seqNum) {
         this(senderName, ContentType.STICKER, null, sticker, seqNum);
     }
 
@@ -50,26 +42,20 @@ public record ChatMessage(String senderName, ContentType contentType, String mes
             return Optional.empty();
         }
 
-        BufferedImage sticker;
-
         try {
-            sticker = ImageIO.read(
-                    new ByteArrayInputStream(Base64.getDecoder().decode(msgEntries.get("sticker_data"))));
+            return Optional.of(new ChatMessage(
+                    msgEntries.get("sender_name"),
+                    Sticker.fromBase64String(msgEntries.get("sticker_data")),
+                    Integer.parseInt(msgEntries.get("sequence_number"))));
         } catch (IOException e) {
             return Optional.empty();
         }
-
-        return Optional.of(new ChatMessage(
-                msgEntries.get("sender_name"),
-                new ImageIcon(sticker.getScaledInstance(50, 50, Image.SCALE_SMOOTH)),
-                Integer.parseInt(msgEntries.get("sequence_number"))));
     }
 
     @Override
     public String toString() {
         if (contentType == ContentType.TEXT) {
-            return String.join(
-                    "\n",
+            return String.join("\n",
                     "message_type: " + MessageType.CHAT_MESSAGE,
                     "sender_name: " + senderName,
                     "content_type: " + contentType,
@@ -77,12 +63,11 @@ public record ChatMessage(String senderName, ContentType contentType, String mes
                     "sequence_number: " + sequenceNumber);
         }
 
-        return String.join(
-                "\n",
+        return String.join("\n",
                 "message_type: " + MessageType.CHAT_MESSAGE,
                 "sender_name: " + senderName,
                 "content_type: " + contentType,
-                "sticker_data: " + ImageUtils.encodeImageIconToBase64String(sticker),
+                "sticker_data: " + sticker.encodeToBase64String(),
                 "sequence_number: " + sequenceNumber);
     }
 }

@@ -27,8 +27,7 @@ public record CalculationReport(String attacker, String moveUsed, int remainingH
 
     @Override
     public String toString() {
-        return String.join(
-                "\n",
+        return String.join("\n",
                 "message_type: " + MessageType.CALCULATION_REPORT,
                 "attacker: " + attacker,
                 "move_used: " + moveUsed,

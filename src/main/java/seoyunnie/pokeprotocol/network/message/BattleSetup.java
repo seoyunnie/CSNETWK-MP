@@ -30,8 +30,7 @@ public record BattleSetup(CommunicationMode communicationMode, String pokemonNam
 
     @Override
     public final String toString() {
-        return String.join(
-                "\n",
+        return String.join("\n",
                 "message_type: " + MessageType.BATTLE_SETUP,
                 "communication_mode: " + communicationMode,
                 "pokemon_name: " + pokemonName,

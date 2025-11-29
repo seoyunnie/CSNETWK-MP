@@ -1,16 +1,14 @@
 package seoyunnie.pokeprotocol.network.message;
 
 import java.net.DatagramPacket;
-import java.util.Map;
 import java.util.Optional;
 
 import seoyunnie.pokeprotocol.util.NetworkUtils;
 
 public record ACK(int ackNumber) {
     public static Optional<ACK> fromPacket(DatagramPacket packet) {
-        Map<String, String> msgEntries = NetworkUtils.getMessageEntries(packet);
-
-        return Optional.of(msgEntries.get("ack_number")).map((a) -> new ACK(Integer.parseInt(a)));
+        return Optional.of(NetworkUtils.getMessageEntries(packet).get("ack_number"))
+                .map((n) -> new ACK(Integer.parseInt(n)));
     }
 
     @Override

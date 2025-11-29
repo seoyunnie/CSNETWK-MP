@@ -19,8 +19,7 @@ public record CalculationConfirm(int sequenceNumber) {
 
     @Override
     public String toString() {
-        return String.join(
-                "\n",
+        return String.join("\n",
                 "message_type: " + MessageType.CALCULATION_CONFIRM,
                 "sequence_number: " + sequenceNumber);
     }

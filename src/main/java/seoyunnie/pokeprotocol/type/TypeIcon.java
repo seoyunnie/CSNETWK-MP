@@ -4,7 +4,7 @@ import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.ImageObserver;
 
-import seoyunnie.pokeprotocol.util.ImageUtils;
+import seoyunnie.pokeprotocol.util.ImageLoader;
 
 public class TypeIcon {
     public static final int ICON_SIZE = 60;
@@ -16,8 +16,8 @@ public class TypeIcon {
     private final BufferedImage namedIcon;
 
     public TypeIcon(String typeName) {
-        this.icon = ImageUtils.loadFromAssets("types/" + typeName + "-icon");
-        this.namedIcon = ImageUtils.loadFromAssets("types/" + typeName + "-name");
+        this.icon = ImageLoader.loadFromAssets("types/" + typeName + "-icon");
+        this.namedIcon = ImageLoader.loadFromAssets("types/" + typeName + "-name");
     }
 
     public TypeIcon(Type type) {

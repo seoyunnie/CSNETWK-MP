@@ -3,11 +3,13 @@ package seoyunnie.pokeprotocol.pokemon;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.ImageObserver;
-import seoyunnie.pokeprotocol.util.ImageUtils;
+
+import seoyunnie.pokeprotocol.util.ImageLoader;
 
 public class PokemonSprite {
     public enum Direction {
-        FRONT, BACK;
+        FRONT,
+        BACK;
     }
 
     public static final int WIDTH = 96;
@@ -25,8 +27,8 @@ public class PokemonSprite {
     private final BufferedImage back;
 
     public PokemonSprite(String pokemonName) {
-        this.front = ImageUtils.loadFromAssets("sprites/" + pokemonName + "-front");
-        this.back = ImageUtils.loadFromAssets("sprites/" + pokemonName + "-back");
+        this.front = ImageLoader.loadFromAssets("sprites/" + pokemonName + "-front");
+        this.back = ImageLoader.loadFromAssets("sprites/" + pokemonName + "-back");
     }
 
     public PokemonSprite(Pokemon pokemon) {

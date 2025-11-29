@@ -11,9 +11,8 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
-import javax.swing.ImageIcon;
-
 import seoyunnie.pokeprotocol.network.message.ChatMessage;
+import seoyunnie.pokeprotocol.sticker.Sticker;
 
 public class ChatClient {
     private static final int PORT = 8080;
@@ -64,7 +63,7 @@ public class ChatClient {
         socket.send(new DatagramPacket(buff, buff.length, broadcastAddress, PORT));
     }
 
-    public void sendSticker(ImageIcon sticker) throws IOException {
+    public void sendSticker(Sticker sticker) throws IOException {
         byte[] buff = new ChatMessage(username, sticker, sequenceNumber.getAndIncrement()).toString().getBytes();
 
         int packetCnt = (int) Math.ceil(buff.length / (double) MAX_CHUNK_SIZE);

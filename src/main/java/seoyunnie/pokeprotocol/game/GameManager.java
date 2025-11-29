@@ -8,8 +8,8 @@ import java.util.function.Consumer;
 
 import javax.swing.JOptionPane;
 
-import seoyunnie.pokeprotocol.gui.ChatFrame;
 import seoyunnie.pokeprotocol.gui.HostNetworkInfoFrame;
+import seoyunnie.pokeprotocol.gui.chat.ChatFrame;
 import seoyunnie.pokeprotocol.gui.dialog.HostNetworkInputDialog;
 import seoyunnie.pokeprotocol.gui.dialog.PokemonSelectionDialog;
 import seoyunnie.pokeprotocol.network.GameClient;
