@@ -8,9 +8,9 @@ import java.awt.Graphics2D;
 
 import javax.swing.JButton;
 
+import seoyunnie.pokeprotocol.gui.pokemon.TypeIcon;
 import seoyunnie.pokeprotocol.move.Move;
 import seoyunnie.pokeprotocol.type.TypeEffectiveness;
-import seoyunnie.pokeprotocol.type.TypeIcon;
 
 public class MoveButton extends JButton {
     private final Move move;

@@ -1,9 +1,10 @@
-package seoyunnie.pokeprotocol.type;
+package seoyunnie.pokeprotocol.gui.pokemon;
 
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.ImageObserver;
 
+import seoyunnie.pokeprotocol.type.Type;
 import seoyunnie.pokeprotocol.util.ImageLoader;
 
 public class TypeIcon {
@@ -24,11 +25,11 @@ public class TypeIcon {
         this(type.name());
     }
 
-    public void draw(Graphics2D graphics2d, int x, int y, int width, int height, ImageObserver imgObserver) {
-        graphics2d.drawImage(icon, x, y, width, height, imgObserver);
+    public void draw(Graphics2D graphics2d, int x, int y, int w, int h, ImageObserver imgObserver) {
+        graphics2d.drawImage(icon, x, y, w, h, imgObserver);
     }
 
-    public void drawWithName(Graphics2D graphics2d, int x, int y, int width, int height, ImageObserver imgObserver) {
-        graphics2d.drawImage(namedIcon, x, y, width, height, imgObserver);
+    public void drawWithName(Graphics2D graphics2d, int x, int y, int w, int h, ImageObserver imgObserver) {
+        graphics2d.drawImage(namedIcon, x, y, w, h, imgObserver);
     }
 }

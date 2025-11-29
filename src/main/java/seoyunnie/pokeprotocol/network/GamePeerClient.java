@@ -8,16 +8,19 @@ import java.util.Optional;
 
 import seoyunnie.pokeprotocol.network.message.HandshakeRequest;
 import seoyunnie.pokeprotocol.network.message.HandshakeResponse;
+import seoyunnie.pokeprotocol.util.NetworkUtils;
 
 public class GamePeerClient extends GameClient {
     private static final int PORT = 8082;
 
     private final Peer host;
 
-    public GamePeerClient(String hostAddrName, int hostPort) throws UnknownHostException, SocketException {
-        super(PORT);
+    public GamePeerClient(CommunicationMode comMode, String hostAddrName, int hostPort)
+            throws UnknownHostException, SocketException {
+        super(comMode, PORT);
 
-        this.host = new Peer(InetAddress.getByName(hostAddrName), hostPort);
+        this.host = new Peer(comMode == CommunicationMode.P2P ? InetAddress.getByName(hostAddrName)
+                : NetworkUtils.getBroadcastAddress().get(), hostPort);
     }
 
     @Override

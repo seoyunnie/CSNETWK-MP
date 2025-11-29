@@ -1,9 +1,10 @@
-package seoyunnie.pokeprotocol.pokemon;
+package seoyunnie.pokeprotocol.gui.pokemon;
 
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.ImageObserver;
 
+import seoyunnie.pokeprotocol.pokemon.Pokemon;
 import seoyunnie.pokeprotocol.util.ImageLoader;
 
 public class PokemonSprite {

@@ -14,14 +14,22 @@ import java.util.Map;
 import java.util.Optional;
 
 public final class NetworkUtils {
-    private NetworkUtils() {
-    }
+    private static InetAddress address;
+    private static InetAddress broadcastAddress;
+
+    private NetworkUtils() {}
 
     public static Optional<InetAddress> getAddress() {
-        try (var s = new Socket()) {
-            s.connect(new InetSocketAddress("google.com", 80));
+        if (address != null) {
+            return Optional.of(address);
+        }
 
-            return Optional.of(s.getLocalAddress());
+        try (var socket = new Socket()) {
+            socket.connect(new InetSocketAddress("google.com", 80));
+
+            address = socket.getLocalAddress();
+
+            return Optional.of(address);
         } catch (IOException e) {
             e.printStackTrace();
 
@@ -30,6 +38,10 @@ public final class NetworkUtils {
     }
 
     public static Optional<InetAddress> getBroadcastAddress() {
+        if (broadcastAddress != null) {
+            return Optional.of(broadcastAddress);
+        }
+
         try {
             Enumeration<NetworkInterface> netIfaces = NetworkInterface.getNetworkInterfaces();
 
@@ -41,10 +53,10 @@ public final class NetworkUtils {
                 }
 
                 for (InterfaceAddress addr : netIface.getInterfaceAddresses()) {
-                    InetAddress broadcastAddr = addr.getBroadcast();
+                    broadcastAddress = addr.getBroadcast();
 
-                    if (broadcastAddr != null) {
-                        return Optional.of(broadcastAddr);
+                    if (broadcastAddress != null) {
+                        return Optional.of(broadcastAddress);
                     }
                 }
             }

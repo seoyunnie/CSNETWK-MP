@@ -8,7 +8,7 @@ import java.util.concurrent.CountDownLatch;
 
 import javax.swing.JOptionPane;
 
-import seoyunnie.pokeprotocol.gui.BattleFrame;
+import seoyunnie.pokeprotocol.gui.battle.BattleFrame;
 import seoyunnie.pokeprotocol.gui.battle.HUDPanel;
 import seoyunnie.pokeprotocol.gui.battle.HUDTurnPanel;
 import seoyunnie.pokeprotocol.move.GameMoves;
@@ -63,7 +63,7 @@ public class BattleManager implements Runnable {
         this.hudTurnPanel = new HUDTurnPanel(this.ownPokemon.getName(), getMoveEffectivenessMap());
         this.frame = new BattleFrame(this.ownPokemon, this.enemyPokemon, isOwnTurn ? hudTurnPanel : hudPanel);
 
-        hudTurnPanel.addMoveButtonListener((move, effectiveness) -> {
+        hudTurnPanel.setMoveButtonListener((move, effectiveness) -> {
             this.selectedMove = move;
             this.selectedMoveEffectiveness = effectiveness;
 
@@ -216,7 +216,7 @@ public class BattleManager implements Runnable {
     }
 
     private void defend() throws IOException, IllegalStateException {
-        hudPanel.setMessage("");
+        hudPanel.setMessage("Waiting for opponent...");
 
         AttackAnnounce attackAnnouncement = client.receiveAttackAnnouncement().orElseThrow(
                 () -> new IOException());

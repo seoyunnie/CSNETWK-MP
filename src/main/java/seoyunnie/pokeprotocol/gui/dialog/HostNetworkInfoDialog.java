@@ -1,21 +1,20 @@
-package seoyunnie.pokeprotocol.gui;
+package seoyunnie.pokeprotocol.gui.dialog;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.net.InetAddress;
 
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 
-public class HostNetworkInfoFrame extends JFrame {
+public class HostNetworkInfoDialog extends JDialog {
     public static final int TEXT_FIELD_LENGTH = 15;
 
-    public HostNetworkInfoFrame(InetAddress addr, int port) {
-        super("Network Info");
-
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+    public HostNetworkInfoDialog(InetAddress addr, int port) {
+        super((JFrame) null, "Network Info");
 
         setLayout(new GridBagLayout());
 
@@ -23,13 +22,13 @@ public class HostNetworkInfoFrame extends JFrame {
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.gridx = 0;
         constraints.gridy = 0;
-        constraints.insets = new Insets(12, 12, 5, 2);
+        constraints.insets = new Insets(10, 10, 5, 2);
 
         add(new JLabel("IP Address"), constraints);
 
         constraints.gridy++;
         constraints.insets.top = 5;
-        constraints.insets.bottom = 12;
+        constraints.insets.bottom = 10;
 
         add(new JLabel("Port"), constraints);
 
@@ -38,7 +37,7 @@ public class HostNetworkInfoFrame extends JFrame {
 
         constraints.gridx++;
         constraints.gridy = 0;
-        constraints.insets = new Insets(12, 2, 5, 12);
+        constraints.insets = new Insets(10, 2, 5, 10);
 
         add(addrField, constraints);
 
@@ -47,7 +46,7 @@ public class HostNetworkInfoFrame extends JFrame {
 
         constraints.gridy++;
         constraints.insets.top = 5;
-        constraints.insets.bottom = 12;
+        constraints.insets.bottom = 10;
 
         add(portField, constraints);
 

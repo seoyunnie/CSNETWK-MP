@@ -11,14 +11,13 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.text.PlainDocument;
 
-import seoyunnie.pokeprotocol.gui.HostNetworkInfoFrame;
 import seoyunnie.pokeprotocol.validator.IntegerDocumentFilter;
 
-public class HostNetworkInputDialog extends JPanel {
-    private final JTextField addrInField = new JTextField(HostNetworkInfoFrame.TEXT_FIELD_LENGTH);
-    private final JTextField portInField = new JTextField(HostNetworkInfoFrame.TEXT_FIELD_LENGTH);
+public class HostNetworkInputPanel extends JPanel {
+    private final JTextField addrInField = new JTextField(HostNetworkInfoDialog.TEXT_FIELD_LENGTH);
+    private final JTextField portInField = new JTextField(HostNetworkInfoDialog.TEXT_FIELD_LENGTH);
 
-    public HostNetworkInputDialog() {
+    public HostNetworkInputPanel() {
         ((PlainDocument) portInField.getDocument()).setDocumentFilter(new IntegerDocumentFilter());
 
         setLayout(new GridBagLayout());

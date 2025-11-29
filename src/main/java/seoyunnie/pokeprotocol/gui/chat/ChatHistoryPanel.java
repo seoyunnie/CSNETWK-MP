@@ -33,7 +33,7 @@ public class ChatHistoryPanel extends JPanel {
         constraints.fill = GridBagConstraints.BOTH;
         constraints.gridx = 0;
         constraints.gridy = 0;
-        constraints.insets = new Insets(10, 10, 10, 10);
+        constraints.insets = new Insets(ChatFrame.MARGIN, ChatFrame.MARGIN, ChatFrame.MARGIN, ChatFrame.MARGIN);
         constraints.weightx = 1.0;
         constraints.weighty = 1.0;
 
@@ -41,19 +41,19 @@ public class ChatHistoryPanel extends JPanel {
     }
 
     public void appendChatMessage(ChatMessage chatMsg) {
-        Document document = historyPane.getDocument();
+        Document doc = historyPane.getDocument();
 
         try {
-            document.insertString(document.getLength(), chatMsg.senderName() + ": ", null);
+            doc.insertString(doc.getLength(), chatMsg.senderName() + ": ", null);
 
             if (chatMsg.contentType() == ChatMessage.ContentType.TEXT) {
-                document.insertString(document.getLength(), chatMsg.messageText(), null);
+                doc.insertString(doc.getLength(), chatMsg.messageText(), null);
             } else {
                 historyPane.insertIcon(new ImageIcon(
                         chatMsg.sticker().image().getScaledInstance(STICKER_SIZE, STICKER_SIZE, Image.SCALE_SMOOTH)));
             }
 
-            document.insertString(document.getLength(), "\n", null);
+            doc.insertString(doc.getLength(), "\n", null);
         } catch (BadLocationException e) {
         }
     }

@@ -15,7 +15,7 @@ public class StatBoosts {
         return specialAttackUses;
     }
 
-    public void decrementSpecialAttackUses() {
+    public void useSpecialAttack() {
         this.specialAttackUses -= 1;
     }
 
@@ -23,7 +23,7 @@ public class StatBoosts {
         return specialDefenseUses;
     }
 
-    public void decrementDefenseAttackUses() {
+    public void useSpecialDefense() {
         this.specialDefenseUses -= 1;
     }
 }

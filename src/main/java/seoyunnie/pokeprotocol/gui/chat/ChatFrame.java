@@ -20,6 +20,8 @@ public class ChatFrame extends JFrame {
     private static final int WIDTH = 360;
     private static final int HEIGHT = 426;
 
+    public static final int MARGIN = 10;
+
     private final MessageInputPanel messageInputPanel;
     private final StickerSelectionPanel stickerSelectionPanel;
     private final ChatHistoryPanel chatHistoryPanel;
@@ -54,19 +56,19 @@ public class ChatFrame extends JFrame {
         constraints.fill = GridBagConstraints.BOTH;
         constraints.gridx = 0;
         constraints.gridy = 0;
-        constraints.insets = new Insets(10, 10, 5, 10);
+        constraints.insets = new Insets(MARGIN, MARGIN, MARGIN / 2, MARGIN);
 
         add(messageInputPanel, constraints);
 
         messageInputPanel.setDefaultButton(getRootPane());
 
         constraints.gridy++;
-        constraints.insets.top = 5;
+        constraints.insets.top = MARGIN / 2;
 
         add(stickerSelectionPanel, constraints);
 
         constraints.gridy++;
-        constraints.insets.bottom = 10;
+        constraints.insets.bottom = MARGIN;
         constraints.weightx = 1.0;
         constraints.weighty = 1.0;
 
@@ -74,7 +76,7 @@ public class ChatFrame extends JFrame {
     }
 
     private void addListeners() {
-        messageInputPanel.addButtonClickListener((inField) -> {
+        messageInputPanel.setSendButtonListener((inField) -> {
             String msg = inField.getText();
 
             if (msg.isEmpty()) {
@@ -90,7 +92,7 @@ public class ChatFrame extends JFrame {
                         JOptionPane.ERROR_MESSAGE);
             }
         });
-        stickerSelectionPanel.addButtonClickListener((sticker) -> {
+        stickerSelectionPanel.setStickerButtonListeners((sticker) -> {
             try {
                 client.sendSticker(sticker);
             } catch (IOException e) {

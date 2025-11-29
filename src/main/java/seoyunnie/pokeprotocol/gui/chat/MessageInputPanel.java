@@ -24,7 +24,7 @@ public class MessageInputPanel extends JPanel {
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.gridx = 0;
         constraints.gridy = 0;
-        constraints.insets = new Insets(10, 10, 10, 5);
+        constraints.insets = new Insets(ChatFrame.MARGIN, ChatFrame.MARGIN, ChatFrame.MARGIN, ChatFrame.MARGIN / 2);
         constraints.weightx = 1.0;
 
         add(inputField, constraints);
@@ -34,8 +34,8 @@ public class MessageInputPanel extends JPanel {
 
         constraints.fill = GridBagConstraints.NONE;
         constraints.gridx++;
-        constraints.insets.left = 5;
-        constraints.insets.right = 10;
+        constraints.insets.left = ChatFrame.MARGIN / 2;
+        constraints.insets.right = ChatFrame.MARGIN;
         constraints.weightx = 0.0;
 
         add(sendButton, constraints);
@@ -45,7 +45,7 @@ public class MessageInputPanel extends JPanel {
         rootPane.setDefaultButton(sendButton);
     }
 
-    public void addButtonClickListener(Consumer<JTextField> cb) {
+    public void setSendButtonListener(Consumer<JTextField> cb) {
         sendButton.addActionListener((e) -> cb.accept(inputField));
     }
 }

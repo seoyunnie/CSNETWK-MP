@@ -8,14 +8,14 @@ import java.awt.image.BufferedImage;
 import javax.swing.JPanel;
 
 import seoyunnie.pokeprotocol.game.BattlePokemon;
-import seoyunnie.pokeprotocol.pokemon.PokemonSprite;
+import seoyunnie.pokeprotocol.gui.pokemon.PokemonSprite;
 import seoyunnie.pokeprotocol.util.ImageLoader;
 
 public class BattlePanel extends JPanel {
     public static final int WIDTH = 720;
     public static final int HEIGHT = 336;
 
-    private final BufferedImage bgImg = ImageLoader.loadFromAssets("background");
+    private final BufferedImage backgroundImage = ImageLoader.loadFromAssets("background");
 
     private final BattlePokemon ownPokemon;
     private final BattlePokemon enemyPokemon;
@@ -31,7 +31,7 @@ public class BattlePanel extends JPanel {
     protected void paintComponent(Graphics graphics) {
         super.paintComponent(graphics);
 
-        graphics.drawImage(bgImg, 0, 0, WIDTH, HEIGHT, this);
+        graphics.drawImage(backgroundImage, 0, 0, WIDTH, HEIGHT, this);
 
         Graphics2D graphics2d = (Graphics2D) graphics.create();
 

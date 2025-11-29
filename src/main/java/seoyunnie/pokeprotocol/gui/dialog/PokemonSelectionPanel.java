@@ -8,14 +8,13 @@ import java.awt.Insets;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
 
-import seoyunnie.pokeprotocol.gui.PokemonDetailsPanel;
 import seoyunnie.pokeprotocol.pokemon.GamePokemon;
 import seoyunnie.pokeprotocol.pokemon.Pokemon;
 
-public class PokemonSelectionDialog extends JPanel {
+public class PokemonSelectionPanel extends JPanel {
     private final JComboBox<String> selection = new JComboBox<>(GamePokemon.names());
 
-    public PokemonSelectionDialog() {
+    public PokemonSelectionPanel() {
         setLayout(new GridBagLayout());
 
         var cardPanel = new JPanel(new CardLayout());

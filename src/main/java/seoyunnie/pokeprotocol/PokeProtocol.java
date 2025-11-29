@@ -3,16 +3,20 @@ package seoyunnie.pokeprotocol;
 import java.net.InetAddress;
 import java.net.SocketException;
 
+import javax.swing.BorderFactory;
 import javax.swing.JOptionPane;
+import javax.swing.UIManager;
 
 import com.formdev.flatlaf.FlatLightLaf;
 
+import seoyunnie.pokeprotocol.game.GameManager;
 import seoyunnie.pokeprotocol.gui.chat.ChatFrame;
 import seoyunnie.pokeprotocol.util.NetworkUtils;
 
 public class PokeProtocol {
     public static void main(String[] args) {
         FlatLightLaf.setup();
+        UIManager.put("OptionPane.border", BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         InetAddress broadcastAddr = NetworkUtils.getBroadcastAddress().orElse(null);
 
@@ -45,9 +49,6 @@ public class PokeProtocol {
             return;
         }
 
-        // new GameManager().accept(chatFrame);
-
-        chatFrame.setLocationRelativeTo(null);
-        chatFrame.setVisible(true);
+        new GameManager().accept(chatFrame);
     }
 }

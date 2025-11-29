@@ -28,13 +28,20 @@ public abstract class GameClient {
 
     protected static final int BUFFER_SIZE = 4096;
 
+    protected final CommunicationMode communicationMode;
     protected final DatagramSocket socket;
 
     protected final AtomicInteger sequenceNumber = new AtomicInteger(1);
 
-    protected GameClient(int port) throws SocketException {
+    protected GameClient(CommunicationMode comMode, int port) throws SocketException {
+        this.communicationMode = comMode;
         this.socket = new DatagramSocket(port);
         socket.setSoTimeout(TIMEOUT_MS);
+
+        boolean isBroadcasting = comMode == CommunicationMode.BROADCAST;
+
+        socket.setReuseAddress(isBroadcasting);
+        socket.setBroadcast(isBroadcasting);
     }
 
     protected void sendMessage(Object msg, InetAddress addr, int port) throws IOException {
@@ -137,11 +144,8 @@ public abstract class GameClient {
 
     public boolean sendCalculationReport(BattlePokemon pokemon, Move moveUsed, int damageDealt, int defenderHP,
             String msg) throws IOException {
-        return sendTimedMessage(new CalculationReport(
-                pokemon.getName(), moveUsed.name(), pokemon.getCurrentHP(),
-                damageDealt, defenderHP,
-                msg,
-                sequenceNumber.getAndIncrement()));
+        return sendTimedMessage(new CalculationReport(pokemon.getName(), moveUsed.name(), pokemon.getCurrentHP(),
+                damageDealt, defenderHP, msg, sequenceNumber.getAndIncrement()));
     }
 
     public Optional<CalculationReport> receiveCalculationReport() throws IOException {
@@ -162,9 +166,7 @@ public abstract class GameClient {
 
     public void sendResolutionRequest(BattlePokemon pokemon, Move moveUsed, int damageDealt, int defenderHP)
             throws IOException {
-        sendMessage(new ResolutionRequest(
-                pokemon.getName(),
-                moveUsed.name(), damageDealt, defenderHP,
+        sendMessage(new ResolutionRequest(pokemon.getName(), moveUsed.name(), damageDealt, defenderHP,
                 sequenceNumber.getAndIncrement()));
     }
 
@@ -197,9 +199,8 @@ public abstract class GameClient {
     }
 
     public boolean sendGameOver(BattlePokemon winningPokemon, BattlePokemon losingPokemon) throws IOException {
-        return sendTimedMessage(new GameOver(
-                winningPokemon.getName(), losingPokemon.getName(),
-                sequenceNumber.getAndIncrement()));
+        return sendTimedMessage(
+                new GameOver(winningPokemon.getName(), losingPokemon.getName(), sequenceNumber.getAndIncrement()));
     }
 
     public Optional<GameOver> receiveGameOver() throws IOException {

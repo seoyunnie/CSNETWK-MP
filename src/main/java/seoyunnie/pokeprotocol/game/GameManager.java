@@ -8,10 +8,11 @@ import java.util.function.Consumer;
 
 import javax.swing.JOptionPane;
 
-import seoyunnie.pokeprotocol.gui.HostNetworkInfoFrame;
 import seoyunnie.pokeprotocol.gui.chat.ChatFrame;
-import seoyunnie.pokeprotocol.gui.dialog.HostNetworkInputDialog;
-import seoyunnie.pokeprotocol.gui.dialog.PokemonSelectionDialog;
+import seoyunnie.pokeprotocol.gui.dialog.HostNetworkInfoDialog;
+import seoyunnie.pokeprotocol.gui.dialog.HostNetworkInputPanel;
+import seoyunnie.pokeprotocol.gui.dialog.PokemonSelectionPanel;
+import seoyunnie.pokeprotocol.network.CommunicationMode;
 import seoyunnie.pokeprotocol.network.GameClient;
 import seoyunnie.pokeprotocol.network.GameHostClient;
 import seoyunnie.pokeprotocol.network.GamePeerClient;
@@ -21,9 +22,9 @@ import seoyunnie.pokeprotocol.pokemon.Pokemon;
 import seoyunnie.pokeprotocol.util.NetworkUtils;
 
 public class GameManager implements Consumer<ChatFrame> {
-    public static final int SUCCESS = 0;
-    public static final int CANCELLED = 1;
-    public static final int INVALID_PEER = 2;
+    private static final int SUCCESS = 0;
+    private static final int CANCELLED = 1;
+    private static final int INVALID_PEER = 2;
 
     private PlayerRole role;
 
@@ -32,45 +33,34 @@ public class GameManager implements Consumer<ChatFrame> {
     private BattleManager battleManager;
 
     private int initializePlayer() throws IOException {
-        this.role = (PlayerRole) JOptionPane.showInputDialog(
-                null,
-                "Choose your role in the Pokémon battle?", "Role Selection",
-                JOptionPane.QUESTION_MESSAGE,
-                null,
-                PlayerRole.values(), PlayerRole.HOST);
+        this.role = (PlayerRole) JOptionPane.showInputDialog(null, "Choose your role in the Pokémon battle?",
+                "Role Selection", JOptionPane.QUESTION_MESSAGE, null, PlayerRole.values(), PlayerRole.HOST);
 
         if (role == null) {
             return CANCELLED;
         }
 
         this.client = switch (role) {
-            case PlayerRole.HOST -> new GameHostClient();
+            case PlayerRole.HOST -> new GameHostClient(CommunicationMode.P2P);
             case PlayerRole.CHALLENGER -> {
-                var hostNetInDialog = new HostNetworkInputDialog();
+                var hostNetInDialog = new HostNetworkInputPanel();
 
                 while (true) {
-                    JOptionPane.showMessageDialog(
-                            null,
-                            hostNetInDialog, "Host Network Details",
+                    JOptionPane.showMessageDialog(null, hostNetInDialog, "Host Network Details",
                             JOptionPane.PLAIN_MESSAGE);
 
                     if (hostNetInDialog.getAddress().isEmpty() || hostNetInDialog.getPort().isEmpty()) {
-                        JOptionPane.showMessageDialog(
-                                null,
-                                "Please fill up all input fields.", "Missing Input",
+                        JOptionPane.showMessageDialog(null, "Please fill up all input fields.", "Missing Input",
                                 JOptionPane.ERROR_MESSAGE);
 
                         continue;
                     }
 
                     try {
-                        yield new GamePeerClient(
-                                hostNetInDialog.getAddress().get(),
+                        yield new GamePeerClient(CommunicationMode.P2P, hostNetInDialog.getAddress().get(),
                                 hostNetInDialog.getPort().get());
                     } catch (UnknownHostException e) {
-                        JOptionPane.showMessageDialog(
-                                null,
-                                "Please input a valid IP address.", "Invalid IP Address",
+                        JOptionPane.showMessageDialog(null, "Please input a valid IP address.", "Invalid IP Address",
                                 JOptionPane.ERROR_MESSAGE);
 
                         continue;
@@ -88,7 +78,7 @@ public class GameManager implements Consumer<ChatFrame> {
         if (client instanceof GameHostClient hostClient) {
             hostClient.startHandshake();
 
-            var netInfoFrame = new HostNetworkInfoFrame(NetworkUtils.getAddress().get(), GameHostClient.PORT);
+            var netInfoFrame = new HostNetworkInfoDialog(NetworkUtils.getAddress().get(), GameHostClient.PORT);
 
             try {
                 hostClient.getHandshakeThread().join();
@@ -103,12 +93,9 @@ public class GameManager implements Consumer<ChatFrame> {
             }
         }
 
-        var pokemonSelDialog = new PokemonSelectionDialog();
+        var pokemonSelDialog = new PokemonSelectionPanel();
 
-        JOptionPane.showMessageDialog(
-                null,
-                pokemonSelDialog, "Select Your Pokémon",
-                JOptionPane.PLAIN_MESSAGE);
+        JOptionPane.showMessageDialog(null, pokemonSelDialog, "Select Your Pokémon", JOptionPane.PLAIN_MESSAGE);
 
         Pokemon ownPokemon = pokemonSelDialog.getPokemon();
         var ownStatBoosts = new StatBoosts();
@@ -147,15 +134,11 @@ public class GameManager implements Consumer<ChatFrame> {
             chatFrame.setLocation(battleFrameBounds.x + battleFrameBounds.width, battleFrameBounds.y);
             chatFrame.setVisible(true);
         } catch (IOException e) {
-            JOptionPane.showMessageDialog(
-                    null,
-                    "A network-related issue was encountered.", "Network Error",
+            JOptionPane.showMessageDialog(null, "A network-related issue was encountered.", "Network Error",
                     JOptionPane.ERROR_MESSAGE);
         } catch (NoSuchElementException e) {
-            JOptionPane.showMessageDialog(
-                    null,
-                    "The peer is using an application with a different implementation.", "Invalid Peer",
-                    JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, "The peer is using an application with a different implementation.",
+                    "Invalid Peer", JOptionPane.ERROR_MESSAGE);
 
             client.close();
 

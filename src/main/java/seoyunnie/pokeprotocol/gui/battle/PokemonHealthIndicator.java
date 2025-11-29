@@ -6,8 +6,8 @@ import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Stroke;
 
+import seoyunnie.pokeprotocol.gui.pokemon.PokemonSprite;
 import seoyunnie.pokeprotocol.pokemon.Pokemon;
-import seoyunnie.pokeprotocol.pokemon.PokemonSprite;
 import seoyunnie.pokeprotocol.pokemon.PokemonStats;
 
 public class PokemonHealthIndicator {

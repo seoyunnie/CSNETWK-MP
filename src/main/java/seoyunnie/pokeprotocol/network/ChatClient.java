@@ -23,8 +23,6 @@ public class ChatClient {
     private final InetAddress broadcastAddress;
     private final DatagramSocket socket;
 
-    private boolean isTesting;
-
     private boolean isListening;
     private Thread messageListenerThread;
 
@@ -38,12 +36,8 @@ public class ChatClient {
 
         try {
             tempSocket = new DatagramSocket(PORT);
-
-            this.isTesting = false;
         } catch (SocketException e) {
             tempSocket = new DatagramSocket(PORT - 1);
-
-            this.isTesting = true;
         }
 
         this.socket = tempSocket;
@@ -51,10 +45,6 @@ public class ChatClient {
         socket.setBroadcast(true);
 
         this.username = username;
-    }
-
-    public boolean isTesting() {
-        return isTesting;
     }
 
     public void sendChatMessage(String chatMsg) throws IOException {
@@ -115,17 +105,17 @@ public class ChatClient {
                     String[] headerMetadata = header.split(" \\| ");
                     String msgId = headerMetadata[0];
                     int idx = Integer.parseInt(headerMetadata[1]);
-                    int total = Integer.parseInt(headerMetadata[2]);
+                    int packetCnt = Integer.parseInt(headerMetadata[2]);
 
                     receivedChunks.putIfAbsent(msgId, new HashMap<>());
-                    chunkCounts.putIfAbsent(msgId, total);
+                    chunkCounts.putIfAbsent(msgId, packetCnt);
 
                     receivedChunks.get(msgId).put(idx, body.getBytes());
 
-                    if (receivedChunks.get(msgId).size() == total) {
+                    if (receivedChunks.get(msgId).size() == packetCnt) {
                         StringBuilder strBuilder = new StringBuilder();
 
-                        for (int i = 0; i < total; i++) {
+                        for (int i = 0; i < packetCnt; i++) {
                             strBuilder.append(new String(receivedChunks.get(msgId).get(i)));
                         }
 

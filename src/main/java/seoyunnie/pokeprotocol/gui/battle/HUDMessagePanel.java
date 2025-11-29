@@ -37,17 +37,14 @@ public class HUDMessagePanel extends JPanel {
 
         Stroke originalStroke = graphics2d.getStroke();
 
-        int borderWidth = 4;
+        int borderW = 4;
 
-        graphics2d.setStroke(new BasicStroke(borderWidth));
+        graphics2d.setStroke(new BasicStroke(borderW));
 
-        graphics2d.drawRoundRect(
-                borderWidth / 2, borderWidth / 2,
-                getWidth() - borderWidth, getHeight() - borderWidth,
-                CORNER_RADIUS, CORNER_RADIUS);
+        graphics2d.drawRoundRect(borderW / 2, borderW / 2, getWidth() - borderW, getHeight() - borderW, CORNER_RADIUS,
+                CORNER_RADIUS);
 
         graphics2d.setStroke(originalStroke);
-
         graphics2d.setColor(Color.WHITE);
         graphics2d.setFont(new Font("Arial", Font.BOLD, 25));
 

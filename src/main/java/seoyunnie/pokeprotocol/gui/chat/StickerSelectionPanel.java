@@ -25,8 +25,9 @@ public class StickerSelectionPanel extends JPanel {
 
         setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.BLACK), "Message Chat"),
-                BorderFactory.createEmptyBorder(10, 10, 10, 10)));
-        setLayout(new GridLayout(1, stickers.length, 10, 10));
+                BorderFactory.createEmptyBorder(ChatFrame.MARGIN, ChatFrame.MARGIN, ChatFrame.MARGIN,
+                        ChatFrame.MARGIN)));
+        setLayout(new GridLayout(1, stickers.length, ChatFrame.MARGIN, ChatFrame.MARGIN));
 
         for (int i = 0; i < stickers.length; i++) {
             sendStickerButtons[i] = new JButton(
@@ -36,7 +37,7 @@ public class StickerSelectionPanel extends JPanel {
         }
     }
 
-    public void addButtonClickListener(Consumer<Sticker> cb) {
+    public void setStickerButtonListeners(Consumer<Sticker> cb) {
         Sticker[] stickers = ChatStickers.values();
 
         for (int i = 0; i < stickers.length; i++) {

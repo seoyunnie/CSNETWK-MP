@@ -1,4 +1,4 @@
-package seoyunnie.pokeprotocol.gui;
+package seoyunnie.pokeprotocol.gui.battle;
 
 import java.awt.BorderLayout;
 
@@ -6,7 +6,6 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 import seoyunnie.pokeprotocol.game.BattlePokemon;
-import seoyunnie.pokeprotocol.gui.battle.BattlePanel;
 
 public class BattleFrame extends JFrame {
     private final BattlePanel battlePanel;
@@ -21,7 +20,7 @@ public class BattleFrame extends JFrame {
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
         add(battlePanel, BorderLayout.PAGE_START);
-        add(initialHUDPanel, BorderLayout.PAGE_END);
+        add(hudPanel, BorderLayout.PAGE_END);
 
         pack();
         setResizable(false);
@@ -31,9 +30,7 @@ public class BattleFrame extends JFrame {
     }
 
     public void setHUDPanel(JPanel hudPanel) {
-        if (this.hudPanel != null) {
-            remove(this.hudPanel);
-        }
+        remove(this.hudPanel);
 
         this.hudPanel = hudPanel;
 
