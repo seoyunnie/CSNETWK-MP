@@ -11,16 +11,20 @@ import seoyunnie.pokeprotocol.network.message.HandshakeResponse;
 import seoyunnie.pokeprotocol.util.NetworkUtils;
 
 public class GamePeerClient extends GameClient {
-    private static final int PORT = 8082;
-
     private final Peer host;
 
-    public GamePeerClient(CommunicationMode comMode, String hostAddrName, int hostPort)
-            throws UnknownHostException, SocketException {
-        super(comMode, PORT);
+    public GamePeerClient(boolean isBroadcasting, InetAddress hostAddr, int hostPort) throws SocketException {
+        super(isBroadcasting);
 
-        this.host = new Peer(comMode == CommunicationMode.P2P ? InetAddress.getByName(hostAddrName)
-                : NetworkUtils.getBroadcastAddress().get(), hostPort);
+        this.host = new Peer(hostAddr, hostPort);
+    }
+
+    public GamePeerClient(String hostAddrName, int hostPort) throws UnknownHostException, SocketException {
+        this(false, InetAddress.getByName(hostAddrName), hostPort);
+    }
+
+    public GamePeerClient(int hostPort) throws SocketException {
+        this(true, NetworkUtils.getAddress().get(), hostPort);
     }
 
     @Override

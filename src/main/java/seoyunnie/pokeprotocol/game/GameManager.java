@@ -3,6 +3,7 @@ package seoyunnie.pokeprotocol.game;
 import java.awt.Rectangle;
 import java.io.IOException;
 import java.net.UnknownHostException;
+import java.util.Arrays;
 import java.util.NoSuchElementException;
 import java.util.function.Consumer;
 
@@ -12,7 +13,6 @@ import seoyunnie.pokeprotocol.gui.chat.ChatFrame;
 import seoyunnie.pokeprotocol.gui.dialog.HostNetworkInfoDialog;
 import seoyunnie.pokeprotocol.gui.dialog.HostNetworkInputPanel;
 import seoyunnie.pokeprotocol.gui.dialog.PokemonSelectionPanel;
-import seoyunnie.pokeprotocol.network.CommunicationMode;
 import seoyunnie.pokeprotocol.network.GameClient;
 import seoyunnie.pokeprotocol.network.GameHostClient;
 import seoyunnie.pokeprotocol.network.GamePeerClient;
@@ -28,22 +28,53 @@ public class GameManager implements Consumer<ChatFrame> {
 
     private PlayerRole role;
 
+    private boolean isBroadcasting;
     private GameClient client;
 
     private BattleManager battleManager;
 
     private int initializePlayer() throws IOException {
-        this.role = (PlayerRole) JOptionPane.showInputDialog(null, "Choose your role in the Pokémon battle?",
-                "Role Selection", JOptionPane.QUESTION_MESSAGE, null, PlayerRole.values(), PlayerRole.HOST);
+        int opt = JOptionPane.showConfirmDialog(null, "Should the application use your broadcast IP address?",
+                "Broadcast Mode", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
+
+        if (opt == JOptionPane.CANCEL_OPTION) {
+            return CANCELLED;
+        }
+
+        this.isBroadcasting = opt == JOptionPane.YES_OPTION;
+
+        PlayerRole[] roles = PlayerRole.values();
+
+        this.role = (PlayerRole) JOptionPane.showInputDialog(null, "Choose your role in the Pokémon battle:",
+                "Role Selection", JOptionPane.QUESTION_MESSAGE, null,
+                isBroadcasting ? Arrays.copyOfRange(roles, 0, 2) : roles, PlayerRole.HOST);
 
         if (role == null) {
             return CANCELLED;
         }
 
         this.client = switch (role) {
-            case PlayerRole.HOST -> new GameHostClient(CommunicationMode.P2P);
+            case PlayerRole.HOST -> new GameHostClient(isBroadcasting);
             case PlayerRole.CHALLENGER -> {
                 var hostNetInDialog = new HostNetworkInputPanel();
+
+                if (isBroadcasting) {
+                    hostNetInDialog.setAddress(NetworkUtils.getBroadcastAddress().get());
+
+                    while (true) {
+                        JOptionPane.showMessageDialog(null, hostNetInDialog, "Host Network Details",
+                                JOptionPane.PLAIN_MESSAGE);
+
+                        if (hostNetInDialog.getPort().isEmpty()) {
+                            JOptionPane.showMessageDialog(null, "Please fill up all input fields.", "Missing Input",
+                                    JOptionPane.ERROR_MESSAGE);
+
+                            continue;
+                        }
+
+                        yield new GamePeerClient(hostNetInDialog.getPort().get());
+                    }
+                }
 
                 while (true) {
                     JOptionPane.showMessageDialog(null, hostNetInDialog, "Host Network Details",
@@ -57,15 +88,11 @@ public class GameManager implements Consumer<ChatFrame> {
                     }
 
                     try {
-                        yield new GamePeerClient(CommunicationMode.P2P, hostNetInDialog.getAddress().get(),
-                                hostNetInDialog.getPort().get());
+                        yield new GamePeerClient(hostNetInDialog.getAddress().get(), hostNetInDialog.getPort().get());
                     } catch (UnknownHostException e) {
                         JOptionPane.showMessageDialog(null, "Please input a valid IP address.", "Invalid IP Address",
                                 JOptionPane.ERROR_MESSAGE);
-
-                        continue;
                     }
-
                 }
             }
             case PlayerRole.SPECTATOR -> throw new IllegalStateException();
@@ -78,7 +105,9 @@ public class GameManager implements Consumer<ChatFrame> {
         if (client instanceof GameHostClient hostClient) {
             hostClient.startHandshake();
 
-            var netInfoFrame = new HostNetworkInfoDialog(NetworkUtils.getAddress().get(), GameHostClient.PORT);
+            var netInfoFrame = new HostNetworkInfoDialog(
+                    isBroadcasting ? NetworkUtils.getBroadcastAddress().get() : NetworkUtils.getAddress().get(),
+                    GameHostClient.PORT);
 
             try {
                 hostClient.getHandshakeThread().join();

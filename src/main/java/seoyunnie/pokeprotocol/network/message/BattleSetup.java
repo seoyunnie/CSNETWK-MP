@@ -19,8 +19,7 @@ public record BattleSetup(CommunicationMode communicationMode, String pokemonNam
         }
 
         try {
-            return Optional.of(new BattleSetup(
-                    CommunicationMode.valueOf(msgEntries.get("communication_mode")),
+            return Optional.of(new BattleSetup(CommunicationMode.valueOf(msgEntries.get("communication_mode")),
                     msgEntries.get("pokemon_name"),
                     new ObjectMapper().readValue(msgEntries.get("stat_boosts"), StatBoosts.class)));
         } catch (JacksonException e) {

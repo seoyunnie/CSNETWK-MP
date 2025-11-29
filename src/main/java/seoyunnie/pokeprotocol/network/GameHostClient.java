@@ -22,8 +22,12 @@ public class GameHostClient extends GameClient {
     private Peer peer;
     private final Set<Peer> spectators = new HashSet<>();
 
-    public GameHostClient(CommunicationMode comMode) throws SocketException {
-        super(comMode, PORT);
+    public GameHostClient(boolean isBroadcasting) throws SocketException {
+        super(isBroadcasting, PORT);
+    }
+
+    public GameHostClient() throws SocketException {
+        super(false, PORT);
     }
 
     public void startHandshake() throws IOException {
@@ -37,7 +41,7 @@ public class GameHostClient extends GameClient {
 
                     HandshakeRequest.fromPacket(packet).ifPresentOrElse((r) -> {
                         try {
-                            sendMessage(new HandshakeResponse(), peer.address(), peer.port());
+                            sendMessage(new HandshakeResponse(12345), peer.address(), peer.port());
 
                             this.peer = peer;
 

@@ -14,9 +14,7 @@ public record GameOver(String winner, String loser, int sequenceNumber) {
             return Optional.empty();
         }
 
-        return Optional.of(new GameOver(
-                msgEntries.get("winner"),
-                msgEntries.get("loser"),
+        return Optional.of(new GameOver(msgEntries.get("winner"), msgEntries.get("loser"),
                 Integer.parseInt(msgEntries.get("sequence_number"))));
     }
 

@@ -29,9 +29,7 @@ public record ChatMessage(String senderName, ContentType contentType, String mes
             return Optional.empty();
         }
 
-        return Optional.of(new ChatMessage(
-                msgEntries.get("sender_name"),
-                msgEntries.get("message_text"),
+        return Optional.of(new ChatMessage(msgEntries.get("sender_name"), msgEntries.get("message_text"),
                 Integer.parseInt(msgEntries.get("sequence_number"))));
     }
 
@@ -43,8 +41,7 @@ public record ChatMessage(String senderName, ContentType contentType, String mes
         }
 
         try {
-            return Optional.of(new ChatMessage(
-                    msgEntries.get("sender_name"),
+            return Optional.of(new ChatMessage(msgEntries.get("sender_name"),
                     Sticker.fromBase64String(msgEntries.get("sticker_data")),
                     Integer.parseInt(msgEntries.get("sequence_number"))));
         } catch (IOException e) {

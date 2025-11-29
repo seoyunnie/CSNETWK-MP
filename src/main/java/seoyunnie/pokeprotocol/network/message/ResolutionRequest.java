@@ -15,9 +15,7 @@ public record ResolutionRequest(String attacker, String moveUsed, int damageDeal
             return Optional.empty();
         }
 
-        return Optional.of(new ResolutionRequest(
-                msgEntries.get("attacker"),
-                msgEntries.get("move_used"),
+        return Optional.of(new ResolutionRequest(msgEntries.get("attacker"), msgEntries.get("move_used"),
                 Integer.parseInt(msgEntries.get("damage_dealth")),
                 Integer.parseInt(msgEntries.get("defender_hp_remaining")),
                 Integer.parseInt(msgEntries.get("sequence_number"))));

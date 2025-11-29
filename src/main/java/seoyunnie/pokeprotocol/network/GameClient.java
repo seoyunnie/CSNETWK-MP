@@ -24,7 +24,7 @@ import seoyunnie.pokeprotocol.pokemon.Pokemon;
 
 public abstract class GameClient {
     protected static final int TIMEOUT_MS = 500;
-    public static final int MAX_RETRIES = 3;
+    protected static final int MAX_RETRIES = 3;
 
     protected static final int BUFFER_SIZE = 4096;
 
@@ -33,13 +33,18 @@ public abstract class GameClient {
 
     protected final AtomicInteger sequenceNumber = new AtomicInteger(1);
 
-    protected GameClient(CommunicationMode comMode, int port) throws SocketException {
-        this.communicationMode = comMode;
+    protected GameClient(boolean isBroadcasting, int port) throws SocketException {
+        this.communicationMode = isBroadcasting ? CommunicationMode.BROADCAST : CommunicationMode.P2P;
         this.socket = new DatagramSocket(port);
         socket.setSoTimeout(TIMEOUT_MS);
+        socket.setReuseAddress(isBroadcasting);
+        socket.setBroadcast(isBroadcasting);
+    }
 
-        boolean isBroadcasting = comMode == CommunicationMode.BROADCAST;
-
+    protected GameClient(boolean isBroadcasting) throws SocketException {
+        this.communicationMode = isBroadcasting ? CommunicationMode.BROADCAST : CommunicationMode.P2P;
+        this.socket = new DatagramSocket();
+        socket.setSoTimeout(TIMEOUT_MS);
         socket.setReuseAddress(isBroadcasting);
         socket.setBroadcast(isBroadcasting);
     }

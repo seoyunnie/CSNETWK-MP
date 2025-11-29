@@ -15,13 +15,9 @@ public record CalculationReport(String attacker, String moveUsed, int remainingH
             return Optional.empty();
         }
 
-        return Optional.of(new CalculationReport(
-                msgEntries.get("attacker"),
-                msgEntries.get("move_used"),
-                Integer.parseInt(msgEntries.get("remaining_health")),
-                Integer.parseInt(msgEntries.get("damage_dealt")),
-                Integer.parseInt(msgEntries.get("defender_hp_remaining")),
-                msgEntries.get("status_message"),
+        return Optional.of(new CalculationReport(msgEntries.get("attacker"), msgEntries.get("move_used"),
+                Integer.parseInt(msgEntries.get("remaining_health")), Integer.parseInt(msgEntries.get("damage_dealt")),
+                Integer.parseInt(msgEntries.get("defender_hp_remaining")), msgEntries.get("status_message"),
                 Integer.parseInt(msgEntries.get("sequence_number"))));
     }
 

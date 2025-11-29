@@ -117,16 +117,12 @@ public class BattleManager implements Runnable {
         Map<Type, Float> effectivenessMap = GameTypes.EFFECTIVENESS_MAP.get(move.type());
 
         return (int) (move.power()
-                * (move.isSpecial()
-                        ? attackingPokemon.stats().specialAttack()
-                        : attackingPokemon.stats().attack())
+                * (move.isSpecial() ? attackingPokemon.stats().specialAttack() : attackingPokemon.stats().attack())
                 * effectivenessMap.getOrDefault(defendingPokemon.firstType(), 1f).floatValue()
                 * (defendingPokemon.secondType() != null
                         ? effectivenessMap.getOrDefault(defendingPokemon.secondType(), 1f).floatValue()
                         : 1))
-                / (move.isSpecial()
-                        ? defendingPokemon.stats().specialAttack()
-                        : defendingPokemon.stats().defense());
+                / (move.isSpecial() ? defendingPokemon.stats().specialAttack() : defendingPokemon.stats().defense());
     }
 
     private void attack() throws IOException, IllegalStateException {
@@ -215,7 +211,7 @@ public class BattleManager implements Runnable {
         this.latch = new CountDownLatch(1);
     }
 
-    private void defend() throws IOException, IllegalStateException {
+    private void defend() throws IOException, NoSuchElementException, IllegalStateException {
         hudPanel.setMessage("Waiting for opponent...");
 
         AttackAnnounce attackAnnouncement = client.receiveAttackAnnouncement().orElseThrow(

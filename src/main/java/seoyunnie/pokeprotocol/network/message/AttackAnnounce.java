@@ -14,9 +14,8 @@ public record AttackAnnounce(String moveName, int sequenceNumber) {
             return Optional.empty();
         }
 
-        return Optional.of(new AttackAnnounce(
-                msgEntries.get("move_name"),
-                Integer.parseInt(msgEntries.get("sequence_number"))));
+        return Optional.of(
+                new AttackAnnounce(msgEntries.get("move_name"), Integer.parseInt(msgEntries.get("sequence_number"))));
     }
 
     @Override
