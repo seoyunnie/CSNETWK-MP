@@ -30,7 +30,7 @@ public class GameJoinerClient extends GameClient {
     }
 
     public GameJoinerClient(int hostPort) throws SocketException {
-        this(true, NetworkUtils.getAddress().get(), hostPort);
+        this(true, NetworkUtils.getBroadcastAddress().get(), hostPort);
     }
 
     @Override
