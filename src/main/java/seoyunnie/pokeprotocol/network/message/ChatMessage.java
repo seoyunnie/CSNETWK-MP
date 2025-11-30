@@ -9,7 +9,7 @@ import seoyunnie.pokeprotocol.sticker.Sticker;
 import seoyunnie.pokeprotocol.util.NetworkUtils;
 
 public record ChatMessage(String senderName, ContentType contentType, String messageText, Sticker sticker,
-        int sequenceNumber) {
+        int sequenceNumber) implements Message {
     public enum ContentType {
         TEXT, STICKER;
     }
@@ -22,10 +22,10 @@ public record ChatMessage(String senderName, ContentType contentType, String mes
         this(senderName, ContentType.STICKER, null, sticker, seqNum);
     }
 
-    public static Optional<ChatMessage> fromPacket(DatagramPacket packet) {
+    public static Optional<ChatMessage> decode(DatagramPacket packet) {
         Map<String, String> msgEntries = NetworkUtils.getMessageEntries(packet);
 
-        if (!msgEntries.getOrDefault("message_type", "").equals(MessageType.CHAT_MESSAGE.toString())) {
+        if (!msgEntries.getOrDefault("message_type", "").equals(Type.CHAT_MESSAGE.toString())) {
             return Optional.empty();
         }
 
@@ -36,7 +36,7 @@ public record ChatMessage(String senderName, ContentType contentType, String mes
     public static Optional<ChatMessage> fromString(StringBuilder strBuilder) {
         Map<String, String> msgEntries = NetworkUtils.getMessageEntries(strBuilder);
 
-        if (!msgEntries.getOrDefault("message_type", "").equals(MessageType.CHAT_MESSAGE.toString())) {
+        if (!msgEntries.getOrDefault("message_type", "").equals(Type.CHAT_MESSAGE.toString())) {
             return Optional.empty();
         }
 
@@ -53,7 +53,7 @@ public record ChatMessage(String senderName, ContentType contentType, String mes
     public String toString() {
         if (contentType == ContentType.TEXT) {
             return String.join("\n",
-                    "message_type: " + MessageType.CHAT_MESSAGE,
+                    "message_type: " + Type.CHAT_MESSAGE,
                     "sender_name: " + senderName,
                     "content_type: " + contentType,
                     "message_text: " + messageText,
@@ -61,7 +61,7 @@ public record ChatMessage(String senderName, ContentType contentType, String mes
         }
 
         return String.join("\n",
-                "message_type: " + MessageType.CHAT_MESSAGE,
+                "message_type: " + Type.CHAT_MESSAGE,
                 "sender_name: " + senderName,
                 "content_type: " + contentType,
                 "sticker_data: " + sticker.encodeToBase64String(),

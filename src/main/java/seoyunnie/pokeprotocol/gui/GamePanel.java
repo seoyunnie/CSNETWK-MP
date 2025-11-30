@@ -1,32 +1,25 @@
-package seoyunnie.pokeprotocol.gui.battle;
+package seoyunnie.pokeprotocol.gui;
 
 import java.awt.BorderLayout;
 
-import javax.swing.JFrame;
+import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 
 import seoyunnie.pokeprotocol.game.BattlePokemon;
+import seoyunnie.pokeprotocol.gui.battle.BattlePanel;
 
-public class BattleFrame extends JFrame {
+public class GamePanel extends JPanel {
     private final BattlePanel battlePanel;
     private JPanel hudPanel;
 
-    public BattleFrame(BattlePokemon ownPokemon, BattlePokemon enemyPokemon, JPanel initialHUDPanel) {
-        super("Pokémon Battle");
-
+    public GamePanel(BattlePokemon ownPokemon, BattlePokemon enemyPokemon, JPanel initialHUDPanel) {
         this.battlePanel = new BattlePanel(ownPokemon, enemyPokemon);
         this.hudPanel = initialHUDPanel;
 
-        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
         add(battlePanel, BorderLayout.PAGE_START);
         add(hudPanel, BorderLayout.PAGE_END);
-
-        pack();
-        setResizable(false);
-
-        setLocationRelativeTo(null);
-        setVisible(true);
     }
 
     public void setHUDPanel(JPanel hudPanel) {

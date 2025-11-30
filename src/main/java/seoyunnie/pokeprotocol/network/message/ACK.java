@@ -5,8 +5,8 @@ import java.util.Optional;
 
 import seoyunnie.pokeprotocol.util.NetworkUtils;
 
-public record ACK(int ackNumber) {
-    public static Optional<ACK> fromPacket(DatagramPacket packet) {
+public record ACK(int ackNumber) implements Message {
+    public static Optional<ACK> decode(DatagramPacket packet) {
         return Optional.of(NetworkUtils.getMessageEntries(packet).get("ack_number"))
                 .map((n) -> new ACK(Integer.parseInt(n)));
     }

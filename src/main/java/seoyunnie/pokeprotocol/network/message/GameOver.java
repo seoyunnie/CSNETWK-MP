@@ -6,11 +6,11 @@ import java.util.Optional;
 
 import seoyunnie.pokeprotocol.util.NetworkUtils;
 
-public record GameOver(String winner, String loser, int sequenceNumber) {
-    public static Optional<GameOver> fromPacket(DatagramPacket packet) {
+public record GameOver(String winner, String loser, int sequenceNumber) implements Message {
+    public static Optional<GameOver> decode(DatagramPacket packet) {
         Map<String, String> msgEntries = NetworkUtils.getMessageEntries(packet);
 
-        if (!msgEntries.getOrDefault("message_type", "").equals(MessageType.GAME_OVER.toString())) {
+        if (!msgEntries.getOrDefault("message_type", "").equals(Type.GAME_OVER.toString())) {
             return Optional.empty();
         }
 
@@ -21,7 +21,7 @@ public record GameOver(String winner, String loser, int sequenceNumber) {
     @Override
     public String toString() {
         return String.join("\n",
-                "message_type: " + MessageType.GAME_OVER,
+                "message_type: " + Type.GAME_OVER,
                 "winner: " + winner,
                 "loser: " + loser,
                 "sequence_number: " + sequenceNumber);

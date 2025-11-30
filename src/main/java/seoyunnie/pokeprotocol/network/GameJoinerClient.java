@@ -4,51 +4,53 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.util.Optional;
 
 import seoyunnie.pokeprotocol.network.message.HandshakeRequest;
 import seoyunnie.pokeprotocol.network.message.HandshakeResponse;
+import seoyunnie.pokeprotocol.network.message.Message;
 import seoyunnie.pokeprotocol.util.NetworkUtils;
 
-public class GamePeerClient extends GameClient {
+public class GameJoinerClient extends GameClient {
+    private static final int PORT = 8082;
+
     private final Peer host;
 
-    public GamePeerClient(boolean isBroadcasting, InetAddress hostAddr, int hostPort) throws SocketException {
-        super(isBroadcasting);
+    public GameJoinerClient(boolean isBroadcasting, InetAddress hostAddr, int hostPort) throws SocketException {
+        super(isBroadcasting, PORT);
 
         this.host = new Peer(hostAddr, hostPort);
     }
 
-    public GamePeerClient(String hostAddrName, int hostPort) throws UnknownHostException, SocketException {
+    public Peer getHost() {
+        return host;
+    }
+
+    public GameJoinerClient(String hostAddrName, int hostPort) throws UnknownHostException, SocketException {
         this(false, InetAddress.getByName(hostAddrName), hostPort);
     }
 
-    public GamePeerClient(int hostPort) throws SocketException {
+    public GameJoinerClient(int hostPort) throws SocketException {
         this(true, NetworkUtils.getAddress().get(), hostPort);
     }
 
     @Override
-    protected void sendMessage(Object msg) throws IOException {
+    protected void sendMessage(Message msg) throws IOException {
         sendMessage(msg, host.address(), host.port());
     }
 
     @Override
-    protected boolean sendTimedMessage(Object msg) throws IOException {
-        return sendTimedMessage(msg, host.address(), host.port());
+    protected boolean sendReliableMessage(Message msg) throws IOException {
+        return sendReliableMessage(msg, host.address(), host.port());
     }
 
     @Override
     protected void sendACK(int seqNum) throws IOException {
-        sendACK(seqNum, host.address(), host.port());
+        sendACK(seqNum, host);
     }
 
     public boolean connectToHost() throws IOException {
         sendMessage(new HandshakeRequest());
 
-        return receiveHandshakeResponse().isPresent();
-    }
-
-    public Optional<HandshakeResponse> receiveHandshakeResponse() throws IOException {
-        return HandshakeResponse.fromPacket(receiveBlockingPacket());
+        return HandshakeResponse.decode(receiveBlockingPacket()).isPresent();
     }
 }

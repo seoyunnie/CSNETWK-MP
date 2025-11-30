@@ -8,7 +8,7 @@ import java.util.concurrent.CountDownLatch;
 
 import javax.swing.JOptionPane;
 
-import seoyunnie.pokeprotocol.gui.battle.BattleFrame;
+import seoyunnie.pokeprotocol.gui.GamePanel;
 import seoyunnie.pokeprotocol.gui.battle.HUDPanel;
 import seoyunnie.pokeprotocol.gui.battle.HUDTurnPanel;
 import seoyunnie.pokeprotocol.move.GameMoves;
@@ -45,7 +45,7 @@ public class BattleManager implements Runnable {
 
     private final HUDPanel hudPanel;
     private final HUDTurnPanel hudTurnPanel;
-    private final BattleFrame frame;
+    private final GamePanel gamePanel;
 
     public BattleManager(GameClient client, Pokemon ownPokemon, StatBoosts ownStatBoosts, Pokemon enemyPokemon,
             StatBoosts enemyStatBoosts) {
@@ -61,7 +61,7 @@ public class BattleManager implements Runnable {
 
         this.hudPanel = new HUDPanel();
         this.hudTurnPanel = new HUDTurnPanel(this.ownPokemon.getName(), getMoveEffectivenessMap());
-        this.frame = new BattleFrame(this.ownPokemon, this.enemyPokemon, isOwnTurn ? hudTurnPanel : hudPanel);
+        this.gamePanel = new GamePanel(this.ownPokemon, this.enemyPokemon, isOwnTurn ? hudTurnPanel : hudPanel);
 
         hudTurnPanel.setMoveButtonListener((move, effectiveness) -> {
             this.selectedMove = move;
@@ -71,8 +71,8 @@ public class BattleManager implements Runnable {
         });
     }
 
-    public BattleFrame getFrame() {
-        return frame;
+    public GamePanel getGamePanel() {
+        return gamePanel;
     }
 
     private TypeEffectiveness getMoveEffectiveness(Move move) {
@@ -143,7 +143,7 @@ public class BattleManager implements Runnable {
         int damageDealt = calculateMoveDamage(selectedMove, ownPokemon.getBasePokemon(), enemyPokemon.getBasePokemon());
 
         int enemyCurrHP = enemyPokemon.getCurrentHP() - damageDealt;
-        boolean isKOd = enemyCurrHP <= 0;
+        boolean isKnockedOut = enemyCurrHP <= 0;
 
         String ownMsg = ownPokemon.getName() + " used " + selectedMove.name() + "!";
         String enemyMsg = "The opposing " + ownPokemon.getName() + " used " + selectedMove.name() + "!";
@@ -154,9 +154,7 @@ public class BattleManager implements Runnable {
             case TypeEffectiveness.SUPER_EFFECTIVE -> "  It's super effective!";
         };
 
-        if (!client.sendCalculationReport(
-                ownPokemon, selectedMove,
-                damageDealt, isKOd ? 0 : enemyCurrHP,
+        if (!client.sendCalculationReport(ownPokemon, selectedMove, damageDealt, isKnockedOut ? 0 : enemyCurrHP,
                 enemyMsg + effectivenessMsg)) {
             throw new IOException();
         }
@@ -169,21 +167,21 @@ public class BattleManager implements Runnable {
             damageDealt = calculateMoveDamage(selectedMove, ownPokemon.getBasePokemon(), enemyPokemon.getBasePokemon());
 
             enemyCurrHP = enemyPokemon.getCurrentHP() - damageDealt;
-            isKOd = enemyCurrHP <= 0;
+            isKnockedOut = enemyCurrHP <= 0;
 
             if (resolutionReq.damageDealt() != damageDealt
-                    || resolutionReq.defenderHPRemaining() != (isKOd ? 0 : enemyCurrHP)) {
+                    || resolutionReq.defenderHPRemaining() != (isKnockedOut ? 0 : enemyCurrHP)) {
                 throw new IllegalStateException();
             }
 
             client.sendResolutionConfirmation(resolutionReq);
         }
 
-        enemyPokemon.decreaseHP(isKOd ? enemyPokemon.getCurrentHP() : damageDealt);
+        enemyPokemon.decreaseHP(isKnockedOut ? enemyPokemon.getCurrentHP() : damageDealt);
 
-        frame.repaint();
+        gamePanel.repaint();
 
-        frame.setHUDPanel(hudPanel);
+        gamePanel.setHUDPanel(hudPanel);
         hudPanel.setMessage(ownMsg + effectivenessMsg);
 
         try {
@@ -226,12 +224,12 @@ public class BattleManager implements Runnable {
         int damageDealt = calculateMoveDamage(enemyMove, enemyPokemon.getBasePokemon(), ownPokemon.getBasePokemon());
 
         int ownCurrHP = ownPokemon.getCurrentHP() - damageDealt;
-        boolean isKOd = ownCurrHP <= 0;
+        boolean isKnockedOut = ownCurrHP <= 0;
 
         CalculationReport calculationReport = client.receiveCalculationReport().orElseThrow(() -> new IOException());
 
         if (calculationReport.damageDealt() != damageDealt) {
-            client.sendResolutionRequest(enemyPokemon, enemyMove, damageDealt, isKOd ? 0 : ownCurrHP);
+            client.sendResolutionRequest(enemyPokemon, enemyMove, damageDealt, isKnockedOut ? 0 : ownCurrHP);
 
             if (!client.receiveResolutionConfirmation()) {
                 throw new IllegalStateException();
@@ -242,9 +240,9 @@ public class BattleManager implements Runnable {
             throw new IOException();
         }
 
-        ownPokemon.decreaseHP(isKOd ? ownPokemon.getCurrentHP() : damageDealt);
+        ownPokemon.decreaseHP(isKnockedOut ? ownPokemon.getCurrentHP() : damageDealt);
 
-        frame.repaint();
+        gamePanel.repaint();
 
         hudPanel.setMessage(calculationReport.statusMessage());
 
@@ -266,7 +264,7 @@ public class BattleManager implements Runnable {
             return;
         }
 
-        frame.setHUDPanel(hudTurnPanel);
+        gamePanel.setHUDPanel(hudTurnPanel);
     }
 
     @Override
@@ -283,7 +281,7 @@ public class BattleManager implements Runnable {
             }
 
             JOptionPane.showConfirmDialog(
-                    frame,
+                    gamePanel,
                     winner + " defeated " + loser + "!", "Match Over",
                     JOptionPane.PLAIN_MESSAGE);
         } catch (IOException e) {
@@ -294,18 +292,20 @@ public class BattleManager implements Runnable {
                     "You, or your, opponent had been disconnected.", "Clients Disconnected",
                     JOptionPane.ERROR_MESSAGE);
         } catch (NoSuchElementException e) {
+            e.printStackTrace();
+
             JOptionPane.showMessageDialog(
                     null,
                     "The peer is using an application with a different implementation.", "Invalid Peer Client",
                     JOptionPane.ERROR_MESSAGE);
         } catch (IllegalStateException e) {
+            e.printStackTrace();
+
             JOptionPane.showMessageDialog(
                     null,
                     "The peer's client has gotten out of sync.", "Clients Out of Sync",
                     JOptionPane.ERROR_MESSAGE);
         }
-
-        frame.dispose();
 
         client.close();
     }

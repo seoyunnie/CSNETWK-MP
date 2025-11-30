@@ -7,11 +7,11 @@ import java.util.Optional;
 import seoyunnie.pokeprotocol.util.NetworkUtils;
 
 public record CalculationReport(String attacker, String moveUsed, int remainingHealth, int damageDealt,
-        int defenderHPRemaining, String statusMessage, int sequenceNumber) {
-    public static Optional<CalculationReport> fromPacket(DatagramPacket packet) {
+        int defenderHPRemaining, String statusMessage, int sequenceNumber) implements Message {
+    public static Optional<CalculationReport> decode(DatagramPacket packet) {
         Map<String, String> msgEntries = NetworkUtils.getMessageEntries(packet);
 
-        if (!msgEntries.getOrDefault("message_type", "").equals(MessageType.CALCULATION_REPORT.toString())) {
+        if (!msgEntries.getOrDefault("message_type", "").equals(Type.CALCULATION_REPORT.toString())) {
             return Optional.empty();
         }
 
@@ -24,7 +24,7 @@ public record CalculationReport(String attacker, String moveUsed, int remainingH
     @Override
     public String toString() {
         return String.join("\n",
-                "message_type: " + MessageType.CALCULATION_REPORT,
+                "message_type: " + Type.CALCULATION_REPORT,
                 "attacker: " + attacker,
                 "move_used: " + moveUsed,
                 "remaining_health: " + remainingHealth,

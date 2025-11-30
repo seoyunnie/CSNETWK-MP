@@ -6,11 +6,11 @@ import java.util.Optional;
 
 import seoyunnie.pokeprotocol.util.NetworkUtils;
 
-public record AttackAnnounce(String moveName, int sequenceNumber) {
-    public static Optional<AttackAnnounce> fromPacket(DatagramPacket packet) {
+public record AttackAnnounce(String moveName, int sequenceNumber) implements Message {
+    public static Optional<AttackAnnounce> decode(DatagramPacket packet) {
         Map<String, String> msgEntries = NetworkUtils.getMessageEntries(packet);
 
-        if (!msgEntries.getOrDefault("message_type", "").equals(MessageType.ATTACK_ANNOUNCE.toString())) {
+        if (!msgEntries.getOrDefault("message_type", "").equals(Type.ATTACK_ANNOUNCE.toString())) {
             return Optional.empty();
         }
 
@@ -21,7 +21,7 @@ public record AttackAnnounce(String moveName, int sequenceNumber) {
     @Override
     public String toString() {
         return String.join("\n",
-                "message_type: " + MessageType.ATTACK_ANNOUNCE,
+                "message_type: " + Type.ATTACK_ANNOUNCE,
                 "move_name: " + moveName,
                 "sequence_number: " + sequenceNumber);
     }

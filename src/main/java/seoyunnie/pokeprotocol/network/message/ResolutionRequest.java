@@ -7,11 +7,11 @@ import java.util.Optional;
 import seoyunnie.pokeprotocol.util.NetworkUtils;
 
 public record ResolutionRequest(String attacker, String moveUsed, int damageDealt, int defenderHPRemaining,
-        int sequenceNumber) {
-    public static Optional<ResolutionRequest> fromPacket(DatagramPacket packet) {
+        int sequenceNumber) implements Message {
+    public static Optional<ResolutionRequest> decode(DatagramPacket packet) {
         Map<String, String> msgEntries = NetworkUtils.getMessageEntries(packet);
 
-        if (!msgEntries.getOrDefault("message_type", "").equals(MessageType.RESOLUTION_REQUEST.toString())) {
+        if (!msgEntries.getOrDefault("message_type", "").equals(Type.RESOLUTION_REQUEST.toString())) {
             return Optional.empty();
         }
 
@@ -24,7 +24,7 @@ public record ResolutionRequest(String attacker, String moveUsed, int damageDeal
     @Override
     public String toString() {
         return String.join("\n",
-                "message_type: " + MessageType.RESOLUTION_REQUEST,
+                "message_type: " + Type.RESOLUTION_REQUEST,
                 "attacker: " + attacker,
                 "move_used: " + moveUsed,
                 "damage_dealt: " + damageDealt,

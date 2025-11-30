@@ -6,11 +6,15 @@ import java.util.Optional;
 
 import seoyunnie.pokeprotocol.util.NetworkUtils;
 
-public record HandshakeResponse(int seed) {
-    public static Optional<HandshakeResponse> fromPacket(DatagramPacket packet) {
+public record HandshakeResponse(int seed) implements Message {
+    public HandshakeResponse() {
+        this(12345);
+    }
+
+    public static Optional<HandshakeResponse> decode(DatagramPacket packet) {
         Map<String, String> msgEntries = NetworkUtils.getMessageEntries(packet);
 
-        if (!msgEntries.getOrDefault("message_type", "").equals(MessageType.HANDSHAKE_RESPONSE.toString())) {
+        if (!msgEntries.getOrDefault("message_type", "").equals(Type.HANDSHAKE_RESPONSE.toString())) {
             return Optional.empty();
         }
 
@@ -20,7 +24,7 @@ public record HandshakeResponse(int seed) {
     @Override
     public String toString() {
         return String.join("\n",
-                "message_type: " + MessageType.HANDSHAKE_RESPONSE,
+                "message_type: " + Type.HANDSHAKE_RESPONSE,
                 "seed: " + seed);
     }
 }

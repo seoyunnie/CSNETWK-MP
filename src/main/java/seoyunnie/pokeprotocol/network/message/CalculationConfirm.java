@@ -6,11 +6,11 @@ import java.util.Optional;
 
 import seoyunnie.pokeprotocol.util.NetworkUtils;
 
-public record CalculationConfirm(int sequenceNumber) {
-    public static Optional<CalculationConfirm> fromPacket(DatagramPacket packet) {
+public record CalculationConfirm(int sequenceNumber) implements Message {
+    public static Optional<CalculationConfirm> decode(DatagramPacket packet) {
         Map<String, String> msgEntries = NetworkUtils.getMessageEntries(packet);
 
-        if (!msgEntries.getOrDefault("message_type", "").equals(MessageType.CALCULATION_CONFIRM.toString())) {
+        if (!msgEntries.getOrDefault("message_type", "").equals(Type.CALCULATION_CONFIRM.toString())) {
             return Optional.empty();
         }
 
@@ -20,7 +20,7 @@ public record CalculationConfirm(int sequenceNumber) {
     @Override
     public String toString() {
         return String.join("\n",
-                "message_type: " + MessageType.CALCULATION_CONFIRM,
+                "message_type: " + Type.CALCULATION_CONFIRM,
                 "sequence_number: " + sequenceNumber);
     }
 }

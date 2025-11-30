@@ -33,7 +33,7 @@ public class ChatHistoryPanel extends JPanel {
         constraints.fill = GridBagConstraints.BOTH;
         constraints.gridx = 0;
         constraints.gridy = 0;
-        constraints.insets = new Insets(ChatFrame.MARGIN, ChatFrame.MARGIN, ChatFrame.MARGIN, ChatFrame.MARGIN);
+        constraints.insets = new Insets(ChatPanel.MARGIN, ChatPanel.MARGIN, ChatPanel.MARGIN, ChatPanel.MARGIN);
         constraints.weightx = 1.0;
         constraints.weighty = 1.0;
 
@@ -55,6 +55,7 @@ public class ChatHistoryPanel extends JPanel {
 
             doc.insertString(doc.getLength(), "\n", null);
         } catch (BadLocationException e) {
+            e.printStackTrace();
         }
     }
 }

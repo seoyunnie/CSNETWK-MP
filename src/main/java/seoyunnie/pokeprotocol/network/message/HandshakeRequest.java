@@ -6,11 +6,11 @@ import java.util.Optional;
 
 import seoyunnie.pokeprotocol.util.NetworkUtils;
 
-public record HandshakeRequest() {
-    public static Optional<HandshakeRequest> fromPacket(DatagramPacket packet) {
+public record HandshakeRequest() implements Message {
+    public static Optional<HandshakeRequest> decode(DatagramPacket packet) {
         Map<String, String> msgEntries = NetworkUtils.getMessageEntries(packet);
 
-        if (!msgEntries.getOrDefault("message_type", "").equals(MessageType.HANDSHAKE_REQUEST.toString())) {
+        if (!msgEntries.getOrDefault("message_type", "").equals(Type.HANDSHAKE_REQUEST.toString())) {
             return Optional.empty();
         }
 
@@ -19,6 +19,6 @@ public record HandshakeRequest() {
 
     @Override
     public String toString() {
-        return "message_type: " + MessageType.HANDSHAKE_REQUEST;
+        return "message_type: " + Type.HANDSHAKE_REQUEST;
     }
 }

@@ -4,13 +4,11 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.SocketException;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 
-import seoyunnie.pokeprotocol.move.Move;
-import seoyunnie.pokeprotocol.network.message.AttackAnnounce;
 import seoyunnie.pokeprotocol.network.message.HandshakeRequest;
 import seoyunnie.pokeprotocol.network.message.HandshakeResponse;
+import seoyunnie.pokeprotocol.network.message.Message;
 import seoyunnie.pokeprotocol.network.message.SpectatorRequest;
 
 public class GameHostClient extends GameClient {
@@ -30,6 +28,29 @@ public class GameHostClient extends GameClient {
         super(false, PORT);
     }
 
+    public Peer getPeer() {
+        return peer;
+    }
+
+    public Set<Peer> getSpectators() {
+        return spectators;
+    }
+
+    @Override
+    protected void sendMessage(Message msg) throws IOException {
+        sendMessage(msg, peer.address(), peer.port());
+    }
+
+    @Override
+    protected boolean sendReliableMessage(Message msg) throws IOException {
+        return sendReliableMessage(msg, peer.address(), peer.port());
+    }
+
+    @Override
+    protected void sendACK(int seqNum) throws IOException {
+        sendACK(seqNum, peer);
+    }
+
     public void startHandshake() throws IOException {
         isListening = true;
         requestListenerThread = new Thread(() -> {
@@ -39,9 +60,9 @@ public class GameHostClient extends GameClient {
 
                     var peer = new Peer(packet.getAddress(), packet.getPort());
 
-                    HandshakeRequest.fromPacket(packet).ifPresentOrElse((r) -> {
+                    HandshakeRequest.decode(packet).ifPresentOrElse((r) -> {
                         try {
-                            sendMessage(new HandshakeResponse(12345), peer.address(), peer.port());
+                            sendMessage(new HandshakeResponse(), peer.address(), peer.port());
 
                             this.peer = peer;
 
@@ -49,8 +70,15 @@ public class GameHostClient extends GameClient {
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
-                    },
-                            () -> SpectatorRequest.fromPacket(packet).ifPresent((r) -> spectators.add(peer)));
+                    }, () -> SpectatorRequest.decode(packet).ifPresent((r) -> {
+                        try {
+                            sendMessage(new HandshakeResponse(), peer.address(), peer.port());
+
+                            spectators.add(peer);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -62,36 +90,5 @@ public class GameHostClient extends GameClient {
 
     public Thread getHandshakeThread() {
         return requestListenerThread;
-    }
-
-    @Override
-    protected void sendMessage(Object msg) throws IOException {
-        sendMessage(msg, peer.address(), peer.port());
-    }
-
-    @Override
-    protected boolean sendTimedMessage(Object msg) throws IOException {
-        return sendTimedMessage(msg, peer.address(), peer.port());
-    }
-
-    @Override
-    protected void sendACK(int seqNum) throws IOException {
-        sendACK(seqNum, peer.address(), peer.port());
-    }
-
-    public boolean announceAttack(Move move) throws IOException {
-        return sendTimedMessage(new AttackAnnounce(move.name(), sequenceNumber.getAndIncrement()));
-    }
-
-    public Optional<AttackAnnounce> receiveAttackAnnouncement() throws IOException {
-        var attackAnnouncement = AttackAnnounce.fromPacket(receiveBlockingPacket()).orElse(null);
-
-        if (attackAnnouncement == null) {
-            return Optional.empty();
-        }
-
-        sendACK(attackAnnouncement.sequenceNumber());
-
-        return Optional.of(attackAnnouncement);
     }
 }

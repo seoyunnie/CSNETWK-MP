@@ -6,6 +6,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.Enumeration;
@@ -65,6 +66,26 @@ public final class NetworkUtils {
         }
 
         return Optional.empty();
+    }
+
+    public static boolean isAvailablePort(int port) {
+        ServerSocket socket = null;
+
+        try {
+            socket = new ServerSocket(port);
+
+            return true;
+        } catch (IOException e) {
+            return false;
+        } finally {
+            if (socket != null) {
+                try {
+                    socket.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
     private static Map<String, String> getMessageEntries(String msg) {

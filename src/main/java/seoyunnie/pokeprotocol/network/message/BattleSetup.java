@@ -10,11 +10,12 @@ import seoyunnie.pokeprotocol.util.NetworkUtils;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
-public record BattleSetup(CommunicationMode communicationMode, String pokemonName, StatBoosts statBoosts) {
-    public static Optional<BattleSetup> fromPacket(DatagramPacket packet) {
+public record BattleSetup(CommunicationMode communicationMode, String pokemonName, StatBoosts statBoosts)
+        implements Message {
+    public static Optional<BattleSetup> decode(DatagramPacket packet) {
         Map<String, String> msgEntries = NetworkUtils.getMessageEntries(packet);
 
-        if (!msgEntries.getOrDefault("message_type", "").equals(MessageType.BATTLE_SETUP.toString())) {
+        if (!msgEntries.getOrDefault("message_type", "").equals(Type.BATTLE_SETUP.toString())) {
             return Optional.empty();
         }
 
@@ -30,7 +31,7 @@ public record BattleSetup(CommunicationMode communicationMode, String pokemonNam
     @Override
     public final String toString() {
         return String.join("\n",
-                "message_type: " + MessageType.BATTLE_SETUP,
+                "message_type: " + Type.BATTLE_SETUP,
                 "communication_mode: " + communicationMode,
                 "pokemon_name: " + pokemonName,
                 "stat_boosts: " + new ObjectMapper().writeValueAsString(statBoosts));

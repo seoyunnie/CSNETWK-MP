@@ -20,8 +20,9 @@ public class MoveButton extends JButton {
         this.move = move;
         this.moveEffectiveness = moveEffectiveness;
 
-        setPreferredSize(new Dimension(HUDPanel.WIDTH / 4, (HUDPanel.HEIGHT / 2) - 15));
         setBackground(Color.GRAY.darker());
+
+        setPreferredSize(new Dimension(HUDPanel.WIDTH / 4, (HUDPanel.HEIGHT / 2) - 15));
     }
 
     public Move getMove() {

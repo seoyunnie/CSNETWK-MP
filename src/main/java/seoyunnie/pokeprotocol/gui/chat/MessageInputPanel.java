@@ -9,7 +9,6 @@ import java.util.function.Consumer;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JPanel;
-import javax.swing.JRootPane;
 import javax.swing.JTextField;
 
 public class MessageInputPanel extends JPanel {
@@ -17,14 +16,14 @@ public class MessageInputPanel extends JPanel {
     private final JButton sendButton = new JButton("Send");
 
     public MessageInputPanel() {
-        setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.BLACK), "Message Chat"));
+        setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.BLACK), "Send Message"));
         setLayout(new GridBagLayout());
 
         var constraints = new GridBagConstraints();
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.gridx = 0;
         constraints.gridy = 0;
-        constraints.insets = new Insets(ChatFrame.MARGIN, ChatFrame.MARGIN, ChatFrame.MARGIN, ChatFrame.MARGIN / 2);
+        constraints.insets = new Insets(ChatPanel.MARGIN, ChatPanel.MARGIN, ChatPanel.MARGIN, ChatPanel.MARGIN / 2);
         constraints.weightx = 1.0;
 
         add(inputField, constraints);
@@ -34,15 +33,11 @@ public class MessageInputPanel extends JPanel {
 
         constraints.fill = GridBagConstraints.NONE;
         constraints.gridx++;
-        constraints.insets.left = ChatFrame.MARGIN / 2;
-        constraints.insets.right = ChatFrame.MARGIN;
+        constraints.insets.left = ChatPanel.MARGIN / 2;
+        constraints.insets.right = ChatPanel.MARGIN;
         constraints.weightx = 0.0;
 
         add(sendButton, constraints);
-    }
-
-    public void setDefaultButton(JRootPane rootPane) {
-        rootPane.setDefaultButton(sendButton);
     }
 
     public void setSendButtonListener(Consumer<JTextField> cb) {

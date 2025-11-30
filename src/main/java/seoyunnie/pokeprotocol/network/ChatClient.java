@@ -2,59 +2,42 @@ package seoyunnie.pokeprotocol.network;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
 import java.net.SocketException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import seoyunnie.pokeprotocol.network.message.ChatMessage;
 import seoyunnie.pokeprotocol.sticker.Sticker;
 
-public class ChatClient {
-    private static final int PORT = 8080;
+public class ChatClient extends Client {
+    public static final int PORT = 8080;
 
-    private static final int BUFFER_SIZE = 2048;
     private static final int MAX_CHUNK_SIZE = 1300;
-
-    private final InetAddress broadcastAddress;
-    private final DatagramSocket socket;
 
     private boolean isListening;
     private Thread messageListenerThread;
 
     private final String username;
-    private final AtomicInteger sequenceNumber = new AtomicInteger(1);
 
-    public ChatClient(InetAddress broadcastAddr, String username) throws SocketException {
-        this.broadcastAddress = broadcastAddr;
-
-        DatagramSocket tempSocket;
-
-        try {
-            tempSocket = new DatagramSocket(PORT);
-        } catch (SocketException e) {
-            tempSocket = new DatagramSocket(PORT - 1);
-        }
-
-        this.socket = tempSocket;
-        socket.setReuseAddress(true);
-        socket.setBroadcast(true);
+    public ChatClient(boolean isBroadcasting, String username) throws SocketException {
+        super(isBroadcasting, ChatClient.PORT);
 
         this.username = username;
     }
 
-    public void sendChatMessage(String chatMsg) throws IOException {
-        byte[] buff = new ChatMessage(username, chatMsg, sequenceNumber.getAndIncrement()).toString().getBytes();
-
-        socket.send(new DatagramPacket(buff, buff.length, broadcastAddress, PORT));
+    public void sendChatMessage(ChatMessage chatMsg, Peer peer) throws IOException {
+        sendReliableMessage(chatMsg, peer.address(), PORT);
     }
 
-    public void sendSticker(Sticker sticker) throws IOException {
-        byte[] buff = new ChatMessage(username, sticker, sequenceNumber.getAndIncrement()).toString().getBytes();
+    public void sendChatMessage(String chatMsg, Peer peer) throws IOException {
+        sendChatMessage(new ChatMessage(username, chatMsg, sequenceNumber.getAndIncrement()), peer);
+    }
+
+    public void sendSticker(ChatMessage chatMsg, Peer peer) throws IOException {
+        byte[] buff = chatMsg.encode();
 
         int packetCnt = (int) Math.ceil(buff.length / (double) MAX_CHUNK_SIZE);
 
@@ -72,28 +55,42 @@ public class ChatClient {
             System.arraycopy(headerBytes, 0, chunk, 0, headerBytes.length);
             System.arraycopy(buff, start, chunk, headerBytes.length, len);
 
-            socket.send(new DatagramPacket(chunk, headerBytes.length + len, broadcastAddress, PORT));
+            socket.send(new DatagramPacket(chunk, headerBytes.length + len, peer.address(), PORT));
         }
     }
 
-    public void startChatMessageListener(Consumer<ChatMessage> cb) {
+    public void sendSticker(Sticker sticker, Peer peer) throws IOException {
+        sendSticker(new ChatMessage(username, sticker, sequenceNumber.getAndIncrement()), peer);
+    }
+
+    public void startChatMessageListener(BiConsumer<ChatMessage, Peer> cb) {
         isListening = true;
         messageListenerThread = new Thread(() -> {
             var receivedChunks = new HashMap<String, Map<Integer, byte[]>>();
             var chunkCounts = new HashMap<String, Integer>();
 
-            var buff = new byte[BUFFER_SIZE];
-
             while (isListening) {
                 try {
-                    var packet = new DatagramPacket(buff, buff.length);
+                    DatagramPacket packet = receiveBlockingPacket();
 
-                    socket.receive(packet);
+                    var data = new String(packet.getData(), packet.getOffset(), packet.getLength());
 
-                    String data = new String(packet.getData(), packet.getOffset(), packet.getLength());
+                    Consumer<ChatMessage> handleMessage = (m) -> {
+                        var peer = new Peer(packet.getAddress(), packet.getPort());
+
+                        if (!peer.address().equals(socket.getInetAddress())) {
+                            try {
+                                sendACK(m.sequenceNumber(), peer);
+
+                                cb.accept(m, peer);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    };
 
                     if (data.contains("content_type: TEXT")) {
-                        ChatMessage.fromPacket(packet).ifPresent((m) -> cb.accept(m));
+                        ChatMessage.decode(packet).ifPresent(handleMessage);
 
                         continue;
                     }
@@ -119,7 +116,7 @@ public class ChatClient {
                             strBuilder.append(new String(receivedChunks.get(msgId).get(i)));
                         }
 
-                        ChatMessage.fromString(strBuilder).ifPresent((m) -> cb.accept(m));
+                        ChatMessage.fromString(strBuilder).ifPresent(handleMessage);
 
                         receivedChunks.remove(msgId);
                         chunkCounts.remove(msgId);
@@ -137,6 +134,7 @@ public class ChatClient {
     public void stopChatMessageListener() {
         isListening = false;
 
-        socket.close();
+        close();
     }
+
 }
