@@ -284,30 +284,22 @@ public class BattleManager implements Runnable {
                 isOwnTurn = !isOwnTurn;
             }
 
-            JOptionPane.showConfirmDialog(
-                    gamePanel,
-                    winner + " defeated " + loser + "!", "Match Over",
+            JOptionPane.showConfirmDialog(gamePanel, winner + " defeated " + loser + "!", "Match Over",
                     JOptionPane.PLAIN_MESSAGE);
         } catch (IOException e) {
             e.printStackTrace();
 
-            JOptionPane.showMessageDialog(
-                    null,
-                    "A client had been disconnected.", "Clients Disconnected",
+            JOptionPane.showMessageDialog(null, "A client had been disconnected.", "Clients Disconnected",
                     JOptionPane.ERROR_MESSAGE);
         } catch (IncompatiblePeerException e) {
             e.printStackTrace();
 
-            JOptionPane.showMessageDialog(
-                    null,
-                    "A peer is using an application with a different implementation.", "Invalid Peer Client",
-                    JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, "A peer is using an application with a different implementation.",
+                    "Invalid Peer Client", JOptionPane.ERROR_MESSAGE);
         } catch (IllegalStateException e) {
             e.printStackTrace();
 
-            JOptionPane.showMessageDialog(
-                    null,
-                    "A peer's client has gotten out of sync.", "Clients Out of Sync",
+            JOptionPane.showMessageDialog(null, "A peer's client has gotten out of sync.", "Clients Out of Sync",
                     JOptionPane.ERROR_MESSAGE);
         }
 
@@ -316,10 +308,10 @@ public class BattleManager implements Runnable {
 
     public void spectate() {
         try {
-            boolean isFirstRun = false;
+            boolean isFirstRun = true;
 
-            BattlePokemon realOwnPokemon = null;
-            BattlePokemon realEnemyPokemon = null;
+            BattlePokemon hostPokemon = null;
+            BattlePokemon joinerPokemon = null;
 
             while (!isOver) {
                 hudPanel.setMessage("Waiting...");
@@ -346,34 +338,40 @@ public class BattleManager implements Runnable {
                     throw new IllegalStateException();
                 }
 
-                int enemyCurrHP = (isOwnTurn ? enemyPokemon : ownPokemon).getCurrentHP()
-                        - calculationReport.damageDealt();
-
                 if (isFirstRun) {
                     for (Pokemon pokemon : GamePokemon.values()) {
                         if (pokemon.stats().hp() - calculationReport.damageDealt() == calculationReport
                                 .defenderHPRemaining()) {
-                            realEnemyPokemon = ownPokemon.getBasePokemon().equals(pokemon) ? ownPokemon : enemyPokemon;
+                            if (ownPokemon.getBasePokemon().equals(pokemon)) {
+                                joinerPokemon = ownPokemon;
+                                hostPokemon = enemyPokemon;
+                            } else {
+                                joinerPokemon = enemyPokemon;
+                                hostPokemon = ownPokemon;
+                            }
 
                             break;
                         }
                     }
 
-                    if (realOwnPokemon == null || realEnemyPokemon == null) {
+                    if (hostPokemon == null || joinerPokemon == null) {
                         throw new IllegalStateException();
                     }
 
                     isFirstRun = false;
                 }
 
+                int enemyCurrHP = (isOwnTurn ? hostPokemon : joinerPokemon).getCurrentHP()
+                        - calculationReport.damageDealt();
                 boolean isKnockedOut = enemyCurrHP <= 0;
 
-                (isOwnTurn ? realOwnPokemon : realEnemyPokemon)
-                        .decreaseHP(isKnockedOut ? ownPokemon.getCurrentHP() : calculationReport.damageDealt());
+                (isOwnTurn ? hostPokemon : joinerPokemon)
+                        .decreaseHP(isKnockedOut ? (isOwnTurn ? hostPokemon : joinerPokemon).getCurrentHP()
+                                : calculationReport.damageDealt());
 
                 gamePanel.repaint();
 
-                hudPanel.setMessage(calculationReport.statusMessage());
+                hudPanel.setMessage(calculationReport.statusMessage().replace("The opposing ", ""));
 
                 try {
                     Thread.sleep(3000);
@@ -381,7 +379,7 @@ public class BattleManager implements Runnable {
                     e.printStackTrace();
                 }
 
-                if (realOwnPokemon.getCurrentHP() == 0 || realEnemyPokemon.getCurrentHP() == 0) {
+                if (hostPokemon.getCurrentHP() == 0 || joinerPokemon.getCurrentHP() == 0) {
                     GameOver gameOver = client.receiveGameOver().orElseThrow(() -> new IOException());
 
                     hudPanel.setMessage(gameOver.loser() + " fainted!");
@@ -389,37 +387,27 @@ public class BattleManager implements Runnable {
                     this.isOver = true;
                     this.winner = gameOver.winner();
                     this.loser = gameOver.loser();
-
-                    return;
                 }
 
                 isOwnTurn = !isOwnTurn;
             }
 
-            JOptionPane.showConfirmDialog(
-                    gamePanel,
-                    winner + " defeated " + loser + "!", "Match Over",
+            JOptionPane.showConfirmDialog(gamePanel, winner + " defeated " + loser + "!", "Match Over",
                     JOptionPane.PLAIN_MESSAGE);
         } catch (IOException e) {
             e.printStackTrace();
 
-            JOptionPane.showMessageDialog(
-                    null,
-                    "A client had been disconnected.", "Clients Disconnected",
+            JOptionPane.showMessageDialog(null, "A client had been disconnected.", "Clients Disconnected",
                     JOptionPane.ERROR_MESSAGE);
         } catch (IncompatiblePeerException e) {
             e.printStackTrace();
 
-            JOptionPane.showMessageDialog(
-                    null,
-                    "A peer is using an application with a different implementation.", "Invalid Peer Client",
-                    JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, "A peer is using an application with a different implementation.",
+                    "Invalid Peer Client", JOptionPane.ERROR_MESSAGE);
         } catch (IllegalStateException e) {
             e.printStackTrace();
 
-            JOptionPane.showMessageDialog(
-                    null,
-                    "A peer's client has gotten out of sync.", "Clients Out of Sync",
+            JOptionPane.showMessageDialog(null, "A peer's client has gotten out of sync.", "Clients Out of Sync",
                     JOptionPane.ERROR_MESSAGE);
         }
 

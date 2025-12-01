@@ -7,7 +7,9 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
+import seoyunnie.pokeprotocol.game.BattlePokemon;
 import seoyunnie.pokeprotocol.game.StatBoosts;
+import seoyunnie.pokeprotocol.move.Move;
 import seoyunnie.pokeprotocol.network.message.ACK;
 import seoyunnie.pokeprotocol.network.message.AttackAnnounce;
 import seoyunnie.pokeprotocol.network.message.BattleSetup;
@@ -105,6 +107,12 @@ public class GameHostClient extends GameClient {
 
     private void forwardMessage(Message msg) throws IOException {
         for (Peer spectator : spectators) {
+            sendMessage(msg, spectator.address(), spectator.port());
+        }
+    }
+
+    private void forwardReliableMessage(Message msg) throws IOException {
+        for (Peer spectator : spectators) {
             if (!sendReliableMessage(msg, spectator.address(), spectator.port())) {
                 spectators.remove(spectator);
             }
@@ -139,6 +147,15 @@ public class GameHostClient extends GameClient {
     }
 
     @Override
+    public boolean announceAttack(Move move) throws IOException {
+        var attackAnnouncement = new AttackAnnounce(move.name(), sequenceNumber.getAndIncrement());
+
+        forwardReliableMessage(attackAnnouncement);
+
+        return sendReliableMessage(attackAnnouncement);
+    }
+
+    @Override
     public Optional<AttackAnnounce> receiveAttackAnnouncement() throws IOException {
         var attackAnnouncement = AttackAnnounce.decode(receiveBlockingPacket()).orElse(null);
 
@@ -148,9 +165,18 @@ public class GameHostClient extends GameClient {
 
         sendACK(attackAnnouncement.sequenceNumber());
 
-        forwardMessage(attackAnnouncement);
+        forwardReliableMessage(attackAnnouncement);
 
         return Optional.of(attackAnnouncement);
+    }
+
+    @Override
+    public boolean announceDefense() throws IOException {
+        var defenseAnnouncement = new DefenseAnnounce(sequenceNumber.getAndIncrement());
+
+        forwardReliableMessage(defenseAnnouncement);
+
+        return sendReliableMessage(defenseAnnouncement);
     }
 
     @Override
@@ -163,9 +189,20 @@ public class GameHostClient extends GameClient {
 
         sendACK(defenseAnnouncement.sequenceNumber());
 
-        forwardMessage(defenseAnnouncement);
+        forwardReliableMessage(defenseAnnouncement);
 
         return true;
+    }
+
+    @Override
+    public boolean sendCalculationReport(BattlePokemon pokemon, Move moveUsed, int damageDealt, int defenderHP,
+            String msg) throws IOException {
+        var calculationReport = new CalculationReport(pokemon.getName(), moveUsed.name(), pokemon.getCurrentHP(),
+                damageDealt, defenderHP, msg, sequenceNumber.getAndIncrement());
+
+        forwardReliableMessage(calculationReport);
+
+        return sendReliableMessage(calculationReport);
     }
 
     @Override
@@ -178,9 +215,27 @@ public class GameHostClient extends GameClient {
 
         sendACK(calculationReport.sequenceNumber());
 
-        forwardMessage(calculationReport);
+        forwardReliableMessage(calculationReport);
 
         return Optional.of(calculationReport);
+    }
+
+    @Override
+    public boolean sendCalculationConfirmation() throws IOException {
+        var calculationConfirmation = new CalculationConfirm(sequenceNumber.getAndIncrement());
+
+        forwardReliableMessage(calculationConfirmation);
+
+        return sendReliableMessage(calculationConfirmation);
+    }
+
+    @Override
+    public void sendResolutionRequest(BattlePokemon pokemon, Move moveUsed, int damageDealt, int defenderHP)
+            throws IOException {
+        var resolutionReq = new ResolutionRequest(pokemon.getName(), moveUsed.name(), damageDealt, defenderHP,
+                sequenceNumber.getAndIncrement());
+        sendMessage(resolutionReq);
+        forwardMessage(resolutionReq);
     }
 
     @Override
@@ -192,7 +247,7 @@ public class GameHostClient extends GameClient {
         if (calculationConfirmation != null) {
             sendACK(calculationConfirmation.sequenceNumber());
 
-            forwardMessage(calculationConfirmation);
+            forwardReliableMessage(calculationConfirmation);
 
             return Optional.of(calculationConfirmation);
         }
@@ -208,11 +263,13 @@ public class GameHostClient extends GameClient {
         return Optional.empty();
     }
 
+    @Override
     public void sendResolutionConfirmation(ResolutionRequest resolutionReq) throws IOException {
         sendACK(resolutionReq.sequenceNumber());
         forwardACK(resolutionReq.sequenceNumber());
     }
 
+    @Override
     public boolean receiveResolutionConfirmation() throws IOException {
         Optional<ACK> ack = ACK.decode(receiveBlockingPacket());
 
@@ -229,6 +286,16 @@ public class GameHostClient extends GameClient {
     }
 
     @Override
+    public boolean sendGameOver(BattlePokemon winningPokemon, BattlePokemon losingPokemon) throws IOException {
+        var gameOver = new GameOver(winningPokemon.getName(), losingPokemon.getName(),
+                sequenceNumber.getAndIncrement());
+
+        forwardReliableMessage(gameOver);
+
+        return sendReliableMessage(gameOver);
+    }
+
+    @Override
     public Optional<GameOver> receiveGameOver() throws IOException {
         var gameOver = GameOver.decode(receiveBlockingPacket()).orElse(null);
 
@@ -238,7 +305,7 @@ public class GameHostClient extends GameClient {
 
         sendACK(gameOver.sequenceNumber());
 
-        forwardMessage(gameOver);
+        forwardReliableMessage(gameOver);
 
         return Optional.of(gameOver);
     }

@@ -12,6 +12,7 @@ import seoyunnie.pokeprotocol.network.ChatClient;
 import seoyunnie.pokeprotocol.network.GameClient;
 import seoyunnie.pokeprotocol.network.GameHostClient;
 import seoyunnie.pokeprotocol.network.GameJoinerClient;
+import seoyunnie.pokeprotocol.network.GameSpectatorClient;
 import seoyunnie.pokeprotocol.network.Peer;
 import seoyunnie.pokeprotocol.network.message.ChatMessage;
 
@@ -56,27 +57,37 @@ public class ChatManager implements Runnable {
                 return;
             }
 
-            panel.appendChatMessage(username, msg);
-
             try {
                 if (gameClient instanceof GameHostClient hostClient) {
 
                     client.sendChatMessage(msg, hostClient.getPeer().address(), ChatClient.JOINER_PORT);
 
-                    if (!isBroadcasting) {
-                        for (Peer spectator : hostClient.getSpectators()) {
-                            try {
-                                client.sendChatMessage(msg, spectator.address(), ChatClient.SPECTATOR_PORT);
-                            } catch (IOException e) {
-                                e.printStackTrace();
+                    for (Peer spectator : hostClient.getSpectators()) {
+                        try {
+                            client.sendChatMessage(msg, spectator.address(), ChatClient.SPECTATOR_PORT);
+
+                            if (isBroadcasting) {
+                                break;
                             }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+
                         }
                     }
                 } else if (gameClient instanceof GameJoinerClient joinerClient) {
                     client.sendChatMessage(msg, joinerClient.getHost().address());
+                } else if (gameClient instanceof GameSpectatorClient spectatorClient) {
+                    client.sendChatMessage(msg, spectatorClient.getHost().address());
                 }
 
-                SwingUtilities.invokeLater(() -> inField.setText(""));
+                SwingUtilities.invokeLater(() -> {
+                    inField.setText("");
+
+                    if (!isBroadcasting
+                            || (gameClient instanceof GameHostClient || gameClient instanceof GameJoinerClient)) {
+                        panel.appendChatMessage(username, msg);
+                    }
+                });
             } catch (IOException e) {
                 e.printStackTrace();
 
@@ -85,22 +96,28 @@ public class ChatManager implements Runnable {
             }
         });
         panel.setStickerButtonListeners((sticker) -> {
-            panel.appendChatMessage(username, sticker);
-
             try {
                 if (gameClient instanceof GameHostClient hostClient) {
 
                     client.sendSticker(sticker, hostClient.getPeer().address(), ChatClient.JOINER_PORT);
 
-                    if (!isBroadcasting) {
-                        for (Peer spectator : hostClient.getSpectators()) {
-                            client.sendSticker(sticker, spectator.address(), ChatClient.SPECTATOR_PORT);
-                        }
-                    }
+                    for (Peer spectator : hostClient.getSpectators()) {
+                        client.sendSticker(sticker, spectator.address(), ChatClient.SPECTATOR_PORT);
 
-                    return;
+                        if (isBroadcasting) {
+                            break;
+                        }
+
+                    }
                 } else if (gameClient instanceof GameJoinerClient joinerClient) {
                     client.sendSticker(sticker, joinerClient.getHost().address());
+                } else if (gameClient instanceof GameSpectatorClient spectatorClient) {
+                    client.sendSticker(sticker, spectatorClient.getHost().address());
+                }
+
+                if (!isBroadcasting
+                        || (gameClient instanceof GameHostClient || gameClient instanceof GameJoinerClient)) {
+                    SwingUtilities.invokeLater(() -> panel.appendChatMessage(username, sticker));
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -113,24 +130,36 @@ public class ChatManager implements Runnable {
         client.startChatMessageListener((m, p) -> SwingUtilities.invokeLater(() -> {
             panel.appendChatMessage(m);
 
-            if (!isBroadcasting && gameClient instanceof GameHostClient hostClient) {
+            if (gameClient instanceof GameHostClient hostClient) {
+                Peer joiner = hostClient.getPeer();
+
+                if (p.port() != ChatClient.JOINER_PORT) {
+                    try {
+                        if (m.contentType() == ChatMessage.ContentType.STICKER) {
+                            client.sendSticker(m, joiner.address(), ChatClient.JOINER_PORT);
+                        } else {
+                            client.sendChatMessage(m, joiner.address(), ChatClient.JOINER_PORT);
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+
                 Set<Peer> peers = hostClient.getSpectators();
 
-                peers.add(hostClient.getPeer());
                 peers.remove(p);
 
                 for (Peer peer : peers) {
                     try {
                         if (m.contentType() == ChatMessage.ContentType.STICKER) {
-                            client.sendSticker(m, peer.address(),
-                                    peer.equals(hostClient.getPeer()) ? ChatClient.JOINER_PORT
-                                            : ChatClient.SPECTATOR_PORT);
-
-                            continue;
+                            client.sendSticker(m, peer.address(), ChatClient.SPECTATOR_PORT);
+                        } else {
+                            client.sendChatMessage(m, peer.address(), ChatClient.SPECTATOR_PORT);
                         }
 
-                        client.sendChatMessage(m, peer.address(),
-                                peer.equals(hostClient.getPeer()) ? ChatClient.JOINER_PORT : ChatClient.SPECTATOR_PORT);
+                        if (isBroadcasting) {
+                            break;
+                        }
                     } catch (IOException e) {
                         e.printStackTrace();
                     }

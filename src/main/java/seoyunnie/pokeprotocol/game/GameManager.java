@@ -191,7 +191,9 @@ public class GameManager implements Runnable {
             JOptionPane.showMessageDialog(null, "A network-related issue was encountered.", "Network Error",
                     JOptionPane.ERROR_MESSAGE);
 
-            client.close();
+            if (client != null) {
+                client.close();
+            }
 
             return;
         } catch (IncompatiblePeerException e) {
