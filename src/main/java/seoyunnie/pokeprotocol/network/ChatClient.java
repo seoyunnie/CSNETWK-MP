@@ -17,7 +17,7 @@ import seoyunnie.pokeprotocol.sticker.Sticker;
 public class ChatClient extends Client {
     public static final int HOST_PORT = 8080;
     public static final int JOINER_PORT = 8079;
-    public static final int SPECTATOR_PORT = 8079;
+    public static final int SPECTATOR_PORT = 8078;
 
     private static final int MAX_CHUNK_SIZE = 1300;
 

@@ -132,6 +132,25 @@ public class GameManager implements Runnable {
             }
         }
 
+        if (role == PlayerRole.SPECTATOR) {
+            BattleSetup ownBattleSetup = client.receiveBattleSetup().orElseThrow(() -> new IOException());
+
+            Pokemon ownPokemon = GamePokemon.getByName(ownBattleSetup.pokemonName()).orElseThrow(
+                    () -> new IncompatiblePeerException("'" + ownBattleSetup.pokemonName() + "' is not implemented"));
+            StatBoosts ownStatBoosts = ownBattleSetup.statBoosts();
+
+            BattleSetup enemyBattleSetup = client.receiveBattleSetup().orElseThrow(() -> new IOException());
+
+            Pokemon enemyPokemon = GamePokemon.getByName(enemyBattleSetup.pokemonName()).orElseThrow(
+                    () -> new IncompatiblePeerException("'" + enemyBattleSetup.pokemonName() + "' is not implemented"));
+            StatBoosts enemyStatBoosts = enemyBattleSetup.statBoosts();
+
+            this.battleManager = new BattleManager(client, true, ownPokemon, ownStatBoosts, enemyPokemon,
+                    enemyStatBoosts);
+
+            return;
+        }
+
         var pokemonSelDialog = new PokemonSelectionPanel();
 
         JOptionPane.showMessageDialog(null, pokemonSelDialog, "Select Your Pokémon:", JOptionPane.PLAIN_MESSAGE);
@@ -144,9 +163,9 @@ public class GameManager implements Runnable {
         if (role == PlayerRole.HOST) {
             client.sendBattleSetup(ownPokemon, ownStatBoosts);
 
-            battleSetup = client.receiveBattleSetup().orElseThrow();
+            battleSetup = client.receiveBattleSetup().orElseThrow(() -> new IOException());
         } else {
-            battleSetup = client.receiveBattleSetup().orElseThrow();
+            battleSetup = client.receiveBattleSetup().orElseThrow(() -> new IOException());
 
             client.sendBattleSetup(ownPokemon, ownStatBoosts);
         }
@@ -155,8 +174,7 @@ public class GameManager implements Runnable {
                 () -> new IncompatiblePeerException("'" + battleSetup.pokemonName() + "' is not implemented"));
         StatBoosts enemyStatBoosts = battleSetup.statBoosts();
 
-        this.battleManager = new BattleManager(client, client instanceof GameSpectatorClient, ownPokemon, ownStatBoosts,
-                enemyPokemon, enemyStatBoosts);
+        this.battleManager = new BattleManager(client, false, ownPokemon, ownStatBoosts, enemyPokemon, enemyStatBoosts);
     }
 
     @Override
@@ -190,7 +208,12 @@ public class GameManager implements Runnable {
         new GameFrame(battleManager.getGamePanel(), chatManager.getPanel());
 
         chatManager.run();
-        battleManager.run();
+
+        if (role == PlayerRole.SPECTATOR) {
+            battleManager.spectate();
+        } else {
+            battleManager.run();
+        }
 
         System.exit(0);
     }

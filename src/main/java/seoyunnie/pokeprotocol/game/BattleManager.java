@@ -20,6 +20,7 @@ import seoyunnie.pokeprotocol.network.message.CalculationReport;
 import seoyunnie.pokeprotocol.network.message.GameOver;
 import seoyunnie.pokeprotocol.network.message.Message;
 import seoyunnie.pokeprotocol.network.message.ResolutionRequest;
+import seoyunnie.pokeprotocol.pokemon.GamePokemon;
 import seoyunnie.pokeprotocol.pokemon.Pokemon;
 import seoyunnie.pokeprotocol.type.GameTypes;
 import seoyunnie.pokeprotocol.type.Type;
@@ -34,7 +35,6 @@ public class BattleManager implements Runnable {
     private final BattlePokemon enemyPokemon;
     private final StatBoosts enemyStatBoosts;
 
-    private final boolean isSpectating;
     private boolean isOwnTurn;
 
     private boolean isOver = false;
@@ -59,7 +59,6 @@ public class BattleManager implements Runnable {
         this.enemyPokemon = new BattlePokemon(enemyPokemon);
         this.enemyStatBoosts = enemyStatBoosts;
 
-        this.isSpectating = isSpectating;
         this.isOwnTurn = client instanceof GameHostClient;
 
         this.hudPanel = new HUDPanel();
@@ -317,8 +316,13 @@ public class BattleManager implements Runnable {
 
     public void spectate() {
         try {
+            boolean isFirstRun = false;
+
+            BattlePokemon realOwnPokemon = null;
+            BattlePokemon realEnemyPokemon = null;
+
             while (!isOver) {
-                hudPanel.setMessage("Waiting for opponent...");
+                hudPanel.setMessage("Waiting...");
 
                 AttackAnnounce attackAnnouncement = client.receiveAttackAnnouncement()
                         .orElseThrow(() -> new IOException());
@@ -344,9 +348,27 @@ public class BattleManager implements Runnable {
 
                 int enemyCurrHP = (isOwnTurn ? enemyPokemon : ownPokemon).getCurrentHP()
                         - calculationReport.damageDealt();
+
+                if (isFirstRun) {
+                    for (Pokemon pokemon : GamePokemon.values()) {
+                        if (pokemon.stats().hp() - calculationReport.damageDealt() == calculationReport
+                                .defenderHPRemaining()) {
+                            realEnemyPokemon = ownPokemon.getBasePokemon().equals(pokemon) ? ownPokemon : enemyPokemon;
+
+                            break;
+                        }
+                    }
+
+                    if (realOwnPokemon == null || realEnemyPokemon == null) {
+                        throw new IllegalStateException();
+                    }
+
+                    isFirstRun = false;
+                }
+
                 boolean isKnockedOut = enemyCurrHP <= 0;
 
-                (isOwnTurn ? ownPokemon : enemyPokemon)
+                (isOwnTurn ? realOwnPokemon : realEnemyPokemon)
                         .decreaseHP(isKnockedOut ? ownPokemon.getCurrentHP() : calculationReport.damageDealt());
 
                 gamePanel.repaint();
@@ -359,7 +381,7 @@ public class BattleManager implements Runnable {
                     e.printStackTrace();
                 }
 
-                if (ownPokemon.getCurrentHP() == 0 || enemyPokemon.getCurrentHP() == 0) {
+                if (realOwnPokemon.getCurrentHP() == 0 || realEnemyPokemon.getCurrentHP() == 0) {
                     GameOver gameOver = client.receiveGameOver().orElseThrow(() -> new IOException());
 
                     hudPanel.setMessage(gameOver.loser() + " fainted!");
