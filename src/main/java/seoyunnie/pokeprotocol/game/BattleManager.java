@@ -340,8 +340,7 @@ public class BattleManager implements Runnable {
 
                 if (isFirstRun) {
                     for (Pokemon pokemon : GamePokemon.values()) {
-                        if (pokemon.stats().hp() - calculationReport.damageDealt() == calculationReport
-                                .defenderHPRemaining()) {
+                        if (calculationReport.attacker().equals(pokemon.name())) {
                             if (ownPokemon.getBasePokemon().equals(pokemon)) {
                                 joinerPokemon = ownPokemon;
                                 hostPokemon = enemyPokemon;
