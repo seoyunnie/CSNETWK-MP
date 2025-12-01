@@ -7,7 +7,7 @@ import seoyunnie.pokeprotocol.util.NetworkUtils;
 
 public record ACK(int ackNumber) implements Message {
     public static Optional<ACK> decode(DatagramPacket packet) {
-        return Optional.of(NetworkUtils.getMessageEntries(packet).get("ack_number"))
+        return Optional.ofNullable(NetworkUtils.getMessageEntries(packet).get("ack_number"))
                 .map((n) -> new ACK(Integer.parseInt(n)));
     }
 
