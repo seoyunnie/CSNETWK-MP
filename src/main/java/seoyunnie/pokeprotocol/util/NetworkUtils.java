@@ -2,12 +2,11 @@ package seoyunnie.pokeprotocol.util;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
+import java.net.Inet4Address;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
 import java.net.ServerSocket;
-import java.net.Socket;
 import java.net.SocketException;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -25,17 +24,32 @@ public final class NetworkUtils {
             return Optional.of(address);
         }
 
-        try (var socket = new Socket()) {
-            socket.connect(new InetSocketAddress("google.com", 80));
+        try {
+            Enumeration<NetworkInterface> netIfaces = NetworkInterface.getNetworkInterfaces();
 
-            address = socket.getLocalAddress();
+            while (netIfaces.hasMoreElements()) {
+                NetworkInterface netIface = netIfaces.nextElement();
 
-            return Optional.of(address);
-        } catch (IOException e) {
+                if (netIface.isLoopback() || !netIface.isUp()) {
+                    continue;
+                }
+
+                Enumeration<InetAddress> addresses = netIface.getInetAddresses();
+
+                while (addresses.hasMoreElements()) {
+                    address = addresses.nextElement();
+
+                    if (!address.isLoopbackAddress() && address instanceof Inet4Address
+                            && address.isSiteLocalAddress()) {
+                        return Optional.of(address);
+                    }
+                }
+            }
+        } catch (SocketException e) {
             e.printStackTrace();
-
-            return Optional.empty();
         }
+
+        return Optional.empty();
     }
 
     public static Optional<InetAddress> getBroadcastAddress() {
