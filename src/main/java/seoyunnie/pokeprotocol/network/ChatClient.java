@@ -10,7 +10,6 @@ import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-import seoyunnie.pokeprotocol.network.message.ACK;
 import seoyunnie.pokeprotocol.network.message.ChatMessage;
 import seoyunnie.pokeprotocol.sticker.Sticker;
 
@@ -85,11 +84,11 @@ public class ChatClient extends Client {
                 try {
                     DatagramPacket packet = receiveBlockingPacket();
 
-                    if (ACK.decode(packet).isPresent()) {
+                    var data = new String(packet.getData(), packet.getOffset(), packet.getLength());
+
+                    if (data.contains("ack_number")) {
                         continue;
                     }
-
-                    var data = new String(packet.getData(), packet.getOffset(), packet.getLength());
 
                     Consumer<ChatMessage> handleMessage = (m) -> {
                         var peer = new Peer(packet.getAddress(), packet.getPort());

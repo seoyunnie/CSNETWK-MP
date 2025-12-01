@@ -161,13 +161,13 @@ public class GameManager implements Runnable {
         BattleSetup battleSetup;
 
         if (role == PlayerRole.HOST) {
-            client.sendBattleSetup(ownPokemon, ownStatBoosts);
-
             battleSetup = client.receiveBattleSetup().orElseThrow(() -> new IOException());
+
+            client.sendBattleSetup(ownPokemon, ownStatBoosts);
         } else {
-            battleSetup = client.receiveBattleSetup().orElseThrow(() -> new IOException());
-
             client.sendBattleSetup(ownPokemon, ownStatBoosts);
+
+            battleSetup = client.receiveBattleSetup().orElseThrow(() -> new IOException());
         }
 
         Pokemon enemyPokemon = GamePokemon.getByName(battleSetup.pokemonName()).orElseThrow(
