@@ -62,7 +62,16 @@ public class ChatPanel extends JPanel {
         stickerSelectionPanel.setStickerButtonListeners(cb);
     }
 
+    public void appendChatMessage(String username, String msg) {
+        chatHistoryPanel.appendChatMessage(username, msg);
+    }
+
+    public void appendChatMessage(String username, Sticker sticker) {
+        chatHistoryPanel.appendChatMessage(username, sticker);
+    }
+
     public void appendChatMessage(ChatMessage msg) {
         chatHistoryPanel.appendChatMessage(msg);
     }
+
 }

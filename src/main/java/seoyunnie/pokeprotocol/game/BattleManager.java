@@ -3,11 +3,11 @@ package seoyunnie.pokeprotocol.game;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.concurrent.CountDownLatch;
 
 import javax.swing.JOptionPane;
 
+import seoyunnie.pokeprotocol.exception.IncompatiblePeerException;
 import seoyunnie.pokeprotocol.gui.GamePanel;
 import seoyunnie.pokeprotocol.gui.battle.HUDPanel;
 import seoyunnie.pokeprotocol.gui.battle.HUDTurnPanel;
@@ -18,6 +18,7 @@ import seoyunnie.pokeprotocol.network.GameHostClient;
 import seoyunnie.pokeprotocol.network.message.AttackAnnounce;
 import seoyunnie.pokeprotocol.network.message.CalculationReport;
 import seoyunnie.pokeprotocol.network.message.GameOver;
+import seoyunnie.pokeprotocol.network.message.Message;
 import seoyunnie.pokeprotocol.network.message.ResolutionRequest;
 import seoyunnie.pokeprotocol.pokemon.Pokemon;
 import seoyunnie.pokeprotocol.type.GameTypes;
@@ -33,6 +34,7 @@ public class BattleManager implements Runnable {
     private final BattlePokemon enemyPokemon;
     private final StatBoosts enemyStatBoosts;
 
+    private final boolean isSpectating;
     private boolean isOwnTurn;
 
     private boolean isOver = false;
@@ -47,8 +49,8 @@ public class BattleManager implements Runnable {
     private final HUDTurnPanel hudTurnPanel;
     private final GamePanel gamePanel;
 
-    public BattleManager(GameClient client, Pokemon ownPokemon, StatBoosts ownStatBoosts, Pokemon enemyPokemon,
-            StatBoosts enemyStatBoosts) {
+    public BattleManager(GameClient client, boolean isSpectating, Pokemon ownPokemon, StatBoosts ownStatBoosts,
+            Pokemon enemyPokemon, StatBoosts enemyStatBoosts) {
         this.client = client;
 
         this.ownPokemon = new BattlePokemon(ownPokemon);
@@ -57,11 +59,13 @@ public class BattleManager implements Runnable {
         this.enemyPokemon = new BattlePokemon(enemyPokemon);
         this.enemyStatBoosts = enemyStatBoosts;
 
+        this.isSpectating = isSpectating;
         this.isOwnTurn = client instanceof GameHostClient;
 
         this.hudPanel = new HUDPanel();
         this.hudTurnPanel = new HUDTurnPanel(this.ownPokemon.getName(), getMoveEffectivenessMap());
-        this.gamePanel = new GamePanel(this.ownPokemon, this.enemyPokemon, isOwnTurn ? hudTurnPanel : hudPanel);
+        this.gamePanel = new GamePanel(this.ownPokemon, this.enemyPokemon,
+                isSpectating ? hudPanel : isOwnTurn ? hudTurnPanel : hudPanel);
 
         hudTurnPanel.setMoveButtonListener((move, effectiveness) -> {
             this.selectedMove = move;
@@ -159,7 +163,7 @@ public class BattleManager implements Runnable {
             throw new IOException();
         }
 
-        Object calculationConfirmation = client.receiveCalculationConfirmation().orElse(null);
+        Message calculationConfirmation = client.receiveCalculationConfirmation().orElse(null);
 
         if (calculationConfirmation == null) {
             throw new IOException();
@@ -209,7 +213,7 @@ public class BattleManager implements Runnable {
         this.latch = new CountDownLatch(1);
     }
 
-    private void defend() throws IOException, NoSuchElementException, IllegalStateException {
+    private void defend() throws IOException, IncompatiblePeerException, IllegalStateException {
         hudPanel.setMessage("Waiting for opponent...");
 
         AttackAnnounce attackAnnouncement = client.receiveAttackAnnouncement().orElseThrow(
@@ -219,7 +223,8 @@ public class BattleManager implements Runnable {
             throw new IOException();
         }
 
-        Move enemyMove = GameMoves.getByName(attackAnnouncement.moveName()).get();
+        Move enemyMove = GameMoves.getByName(attackAnnouncement.moveName()).orElseThrow(
+                () -> new IncompatiblePeerException("'" + attackAnnouncement.moveName() + "' is not implemented"));
 
         int damageDealt = calculateMoveDamage(enemyMove, enemyPokemon.getBasePokemon(), ownPokemon.getBasePokemon());
 
@@ -253,9 +258,9 @@ public class BattleManager implements Runnable {
         }
 
         if (ownPokemon.getCurrentHP() == 0) {
-            hudPanel.setMessage(ownPokemon.getName() + " fainted!");
-
             GameOver gameOver = client.receiveGameOver().orElseThrow(() -> new IOException());
+
+            hudPanel.setMessage(gameOver.loser() + " fainted!");
 
             this.isOver = true;
             this.winner = gameOver.winner();
@@ -289,21 +294,110 @@ public class BattleManager implements Runnable {
 
             JOptionPane.showMessageDialog(
                     null,
-                    "You, or your, opponent had been disconnected.", "Clients Disconnected",
+                    "A client had been disconnected.", "Clients Disconnected",
                     JOptionPane.ERROR_MESSAGE);
-        } catch (NoSuchElementException e) {
+        } catch (IncompatiblePeerException e) {
             e.printStackTrace();
 
             JOptionPane.showMessageDialog(
                     null,
-                    "The peer is using an application with a different implementation.", "Invalid Peer Client",
+                    "A peer is using an application with a different implementation.", "Invalid Peer Client",
                     JOptionPane.ERROR_MESSAGE);
         } catch (IllegalStateException e) {
             e.printStackTrace();
 
             JOptionPane.showMessageDialog(
                     null,
-                    "The peer's client has gotten out of sync.", "Clients Out of Sync",
+                    "A peer's client has gotten out of sync.", "Clients Out of Sync",
+                    JOptionPane.ERROR_MESSAGE);
+        }
+
+        client.close();
+    }
+
+    public void spectate() {
+        try {
+            while (!isOver) {
+                hudPanel.setMessage("Waiting for opponent...");
+
+                AttackAnnounce attackAnnouncement = client.receiveAttackAnnouncement()
+                        .orElseThrow(() -> new IOException());
+
+                GameMoves.getByName(attackAnnouncement.moveName()).orElseThrow(() -> new IncompatiblePeerException(
+                        "'" + attackAnnouncement.moveName() + "' is not implemented"));
+
+                if (!client.receiveDefenseAnnouncement()) {
+                    throw new IOException();
+                }
+
+                CalculationReport calculationReport = client.receiveCalculationReport()
+                        .orElseThrow(() -> new IOException());
+
+                Message calculationConfirmation = client.receiveCalculationConfirmation().orElse(null);
+
+                if (calculationConfirmation == null) {
+                    throw new IOException();
+                } else if (calculationConfirmation instanceof ResolutionRequest
+                        && !client.receiveResolutionConfirmation()) {
+                    throw new IllegalStateException();
+                }
+
+                int enemyCurrHP = (isOwnTurn ? enemyPokemon : ownPokemon).getCurrentHP()
+                        - calculationReport.damageDealt();
+                boolean isKnockedOut = enemyCurrHP <= 0;
+
+                (isOwnTurn ? ownPokemon : enemyPokemon)
+                        .decreaseHP(isKnockedOut ? ownPokemon.getCurrentHP() : calculationReport.damageDealt());
+
+                gamePanel.repaint();
+
+                hudPanel.setMessage(calculationReport.statusMessage());
+
+                try {
+                    Thread.sleep(3000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                if (ownPokemon.getCurrentHP() == 0 || enemyPokemon.getCurrentHP() == 0) {
+                    GameOver gameOver = client.receiveGameOver().orElseThrow(() -> new IOException());
+
+                    hudPanel.setMessage(gameOver.loser() + " fainted!");
+
+                    this.isOver = true;
+                    this.winner = gameOver.winner();
+                    this.loser = gameOver.loser();
+
+                    return;
+                }
+
+                isOwnTurn = !isOwnTurn;
+            }
+
+            JOptionPane.showConfirmDialog(
+                    gamePanel,
+                    winner + " defeated " + loser + "!", "Match Over",
+                    JOptionPane.PLAIN_MESSAGE);
+        } catch (IOException e) {
+            e.printStackTrace();
+
+            JOptionPane.showMessageDialog(
+                    null,
+                    "A client had been disconnected.", "Clients Disconnected",
+                    JOptionPane.ERROR_MESSAGE);
+        } catch (IncompatiblePeerException e) {
+            e.printStackTrace();
+
+            JOptionPane.showMessageDialog(
+                    null,
+                    "A peer is using an application with a different implementation.", "Invalid Peer Client",
+                    JOptionPane.ERROR_MESSAGE);
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
+
+            JOptionPane.showMessageDialog(
+                    null,
+                    "A peer's client has gotten out of sync.", "Clients Out of Sync",
                     JOptionPane.ERROR_MESSAGE);
         }
 

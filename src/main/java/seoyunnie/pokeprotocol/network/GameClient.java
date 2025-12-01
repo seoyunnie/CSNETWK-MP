@@ -22,8 +22,8 @@ import seoyunnie.pokeprotocol.pokemon.Pokemon;
 public abstract class GameClient extends Client {
     protected final CommunicationMode communicationMode;
 
-    protected GameClient(boolean isBroadcasting, int port) throws SocketException {
-        super(isBroadcasting, port);
+    protected GameClient(int port, boolean isBroadcasting) throws SocketException {
+        super(port, isBroadcasting);
 
         this.communicationMode = isBroadcasting ? CommunicationMode.BROADCAST : CommunicationMode.P2P;
     }
@@ -106,7 +106,7 @@ public abstract class GameClient extends Client {
                 sequenceNumber.getAndIncrement()));
     }
 
-    public Optional<Object> receiveCalculationConfirmation() throws IOException {
+    public Optional<Message> receiveCalculationConfirmation() throws IOException {
         DatagramPacket packet = receiveBlockingPacket();
 
         var calculationConfirmation = CalculationConfirm.decode(packet).orElse(null);

@@ -10,13 +10,13 @@ import seoyunnie.pokeprotocol.network.message.HandshakeResponse;
 import seoyunnie.pokeprotocol.network.message.Message;
 import seoyunnie.pokeprotocol.util.NetworkUtils;
 
-public class GameJoinerClient extends GameClient {
+public class GameJoinerClient extends GameClient implements GamePeerClient {
     private static final int PORT = 8082;
 
     private final Peer host;
 
     public GameJoinerClient(boolean isBroadcasting, InetAddress hostAddr, int hostPort) throws SocketException {
-        super(isBroadcasting, PORT);
+        super(PORT, isBroadcasting);
 
         this.host = new Peer(hostAddr, hostPort);
     }

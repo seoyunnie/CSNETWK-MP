@@ -15,6 +15,7 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 
 import seoyunnie.pokeprotocol.network.message.ChatMessage;
+import seoyunnie.pokeprotocol.sticker.Sticker;
 
 public class ChatHistoryPanel extends JPanel {
     private static final int STICKER_SIZE = 30;
@@ -28,6 +29,7 @@ public class ChatHistoryPanel extends JPanel {
 
         historyPane.setBackground(Color.WHITE);
         historyPane.setEditable(false);
+        historyPane.setFocusable(false);
 
         var constraints = new GridBagConstraints();
         constraints.fill = GridBagConstraints.BOTH;
@@ -40,22 +42,39 @@ public class ChatHistoryPanel extends JPanel {
         add(historyScrollPane, constraints);
     }
 
-    public void appendChatMessage(ChatMessage chatMsg) {
+    public void appendChatMessage(String username, String msg) {
         Document doc = historyPane.getDocument();
 
         try {
-            doc.insertString(doc.getLength(), chatMsg.senderName() + ": ", null);
+            doc.insertString(doc.getLength(), username + ": " + msg + "\n", null);
+        } catch (BadLocationException e) {
+            e.printStackTrace();
+        }
+    }
 
-            if (chatMsg.contentType() == ChatMessage.ContentType.TEXT) {
-                doc.insertString(doc.getLength(), chatMsg.messageText(), null);
-            } else {
-                historyPane.insertIcon(new ImageIcon(
-                        chatMsg.sticker().image().getScaledInstance(STICKER_SIZE, STICKER_SIZE, Image.SCALE_SMOOTH)));
-            }
+    public void appendChatMessage(String username, Sticker sticker) {
+        Document doc = historyPane.getDocument();
+
+        try {
+            doc.insertString(doc.getLength(), username + ": ", null);
+
+            historyPane.setCaretPosition(doc.getLength());
+            historyPane.insertIcon(
+                    new ImageIcon(sticker.image().getScaledInstance(STICKER_SIZE, STICKER_SIZE, Image.SCALE_SMOOTH)));
 
             doc.insertString(doc.getLength(), "\n", null);
         } catch (BadLocationException e) {
             e.printStackTrace();
         }
+    }
+
+    public void appendChatMessage(ChatMessage chatMsg) {
+        if (chatMsg.contentType() == ChatMessage.ContentType.TEXT) {
+            appendChatMessage(chatMsg.senderName(), chatMsg.messageText());
+
+            return;
+        }
+
+        appendChatMessage(chatMsg.senderName(), chatMsg.sticker());
     }
 }

@@ -2,6 +2,7 @@ package seoyunnie.pokeprotocol.network;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
+import java.net.InetAddress;
 import java.net.SocketException;
 import java.util.HashMap;
 import java.util.Map;
@@ -9,11 +10,14 @@ import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
+import seoyunnie.pokeprotocol.network.message.ACK;
 import seoyunnie.pokeprotocol.network.message.ChatMessage;
 import seoyunnie.pokeprotocol.sticker.Sticker;
 
 public class ChatClient extends Client {
-    public static final int PORT = 8080;
+    public static final int HOST_PORT = 8080;
+    public static final int JOINER_PORT = 8079;
+    public static final int SPECTATOR_PORT = 8079;
 
     private static final int MAX_CHUNK_SIZE = 1300;
 
@@ -22,21 +26,25 @@ public class ChatClient extends Client {
 
     private final String username;
 
-    public ChatClient(boolean isBroadcasting, String username) throws SocketException {
-        super(isBroadcasting, ChatClient.PORT);
+    public ChatClient(int port, boolean isBroadcasting, String username) throws SocketException {
+        super(port, isBroadcasting);
 
         this.username = username;
     }
 
-    public void sendChatMessage(ChatMessage chatMsg, Peer peer) throws IOException {
-        sendReliableMessage(chatMsg, peer.address(), PORT);
+    public void sendChatMessage(ChatMessage chatMsg, InetAddress destAddr, int destPort) throws IOException {
+        sendMessage(chatMsg, destAddr, destPort);
     }
 
-    public void sendChatMessage(String chatMsg, Peer peer) throws IOException {
-        sendChatMessage(new ChatMessage(username, chatMsg, sequenceNumber.getAndIncrement()), peer);
+    public void sendChatMessage(String chatMsg, InetAddress destAddr, int destPort) throws IOException {
+        sendChatMessage(new ChatMessage(username, chatMsg, sequenceNumber.getAndIncrement()), destAddr, destPort);
     }
 
-    public void sendSticker(ChatMessage chatMsg, Peer peer) throws IOException {
+    public void sendChatMessage(String chatMsg, InetAddress destAddr) throws IOException {
+        sendChatMessage(new ChatMessage(username, chatMsg, sequenceNumber.getAndIncrement()), destAddr, HOST_PORT);
+    }
+
+    public void sendSticker(ChatMessage chatMsg, InetAddress destAddr, int destPort) throws IOException {
         byte[] buff = chatMsg.encode();
 
         int packetCnt = (int) Math.ceil(buff.length / (double) MAX_CHUNK_SIZE);
@@ -55,12 +63,16 @@ public class ChatClient extends Client {
             System.arraycopy(headerBytes, 0, chunk, 0, headerBytes.length);
             System.arraycopy(buff, start, chunk, headerBytes.length, len);
 
-            socket.send(new DatagramPacket(chunk, headerBytes.length + len, peer.address(), PORT));
+            socket.send(new DatagramPacket(chunk, headerBytes.length + len, destAddr, destPort));
         }
     }
 
-    public void sendSticker(Sticker sticker, Peer peer) throws IOException {
-        sendSticker(new ChatMessage(username, sticker, sequenceNumber.getAndIncrement()), peer);
+    public void sendSticker(Sticker sticker, InetAddress destAddr, int destPort) throws IOException {
+        sendSticker(new ChatMessage(username, sticker, sequenceNumber.getAndIncrement()), destAddr, destPort);
+    }
+
+    public void sendSticker(Sticker sticker, InetAddress destAddr) throws IOException {
+        sendSticker(new ChatMessage(username, sticker, sequenceNumber.getAndIncrement()), destAddr, HOST_PORT);
     }
 
     public void startChatMessageListener(BiConsumer<ChatMessage, Peer> cb) {
@@ -72,6 +84,10 @@ public class ChatClient extends Client {
             while (isListening) {
                 try {
                     DatagramPacket packet = receiveBlockingPacket();
+
+                    if (ACK.decode(packet).isPresent()) {
+                        continue;
+                    }
 
                     var data = new String(packet.getData(), packet.getOffset(), packet.getLength());
 

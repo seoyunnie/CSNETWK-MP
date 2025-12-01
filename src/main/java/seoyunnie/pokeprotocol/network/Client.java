@@ -21,7 +21,7 @@ public abstract class Client {
 
     protected final AtomicInteger sequenceNumber = new AtomicInteger(1);
 
-    protected Client(boolean isBroadcasting, int port) throws SocketException {
+    protected Client(int port, boolean isBroadcasting) throws SocketException {
         this.socket = new DatagramSocket(port);
         socket.setSoTimeout(TIMEOUT_MS);
         socket.setReuseAddress(isBroadcasting);

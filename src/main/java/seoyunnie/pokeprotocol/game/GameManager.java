@@ -2,7 +2,6 @@ package seoyunnie.pokeprotocol.game;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
-import java.util.Arrays;
 
 import javax.swing.JOptionPane;
 
@@ -14,6 +13,7 @@ import seoyunnie.pokeprotocol.gui.dialog.PokemonSelectionPanel;
 import seoyunnie.pokeprotocol.network.GameClient;
 import seoyunnie.pokeprotocol.network.GameHostClient;
 import seoyunnie.pokeprotocol.network.GameJoinerClient;
+import seoyunnie.pokeprotocol.network.GameSpectatorClient;
 import seoyunnie.pokeprotocol.network.message.BattleSetup;
 import seoyunnie.pokeprotocol.pokemon.GamePokemon;
 import seoyunnie.pokeprotocol.pokemon.Pokemon;
@@ -54,8 +54,7 @@ public class GameManager implements Runnable {
         PlayerRole[] roles = PlayerRole.values();
 
         this.role = (PlayerRole) JOptionPane.showInputDialog(null, "Choose your role in the Pokémon battle:",
-                "Role Selection", JOptionPane.QUESTION_MESSAGE, null,
-                isBroadcasting ? Arrays.copyOfRange(roles, 0, 2) : roles, PlayerRole.HOST);
+                "Role Selection", JOptionPane.QUESTION_MESSAGE, null, roles, PlayerRole.HOST);
 
         if (role == null) {
             return CANCELLED;
@@ -63,9 +62,13 @@ public class GameManager implements Runnable {
 
         this.client = switch (role) {
             case PlayerRole.HOST -> new GameHostClient(isBroadcasting);
-            case PlayerRole.JOINER -> {
+            case PlayerRole.JOINER, PlayerRole.SPECTATOR -> {
                 if (isBroadcasting) {
-                    yield new GameJoinerClient(GameHostClient.PORT);
+                    if (role == PlayerRole.JOINER) {
+                        yield new GameJoinerClient(GameHostClient.PORT);
+                    }
+
+                    yield new GameSpectatorClient(GameHostClient.PORT);
                 }
 
                 var hostNetInDialog = new HostNetworkInputPanel();
@@ -82,7 +85,13 @@ public class GameManager implements Runnable {
                     }
 
                     try {
-                        yield new GameJoinerClient(hostNetInDialog.getAddress().get(), hostNetInDialog.getPort().get());
+                        if (role == PlayerRole.JOINER) {
+                            yield new GameJoinerClient(hostNetInDialog.getAddress().get(),
+                                    hostNetInDialog.getPort().get());
+                        }
+
+                        yield new GameSpectatorClient(hostNetInDialog.getAddress().get(),
+                                hostNetInDialog.getPort().get());
                     } catch (UnknownHostException e) {
                         e.printStackTrace();
 
@@ -91,7 +100,6 @@ public class GameManager implements Runnable {
                     }
                 }
             }
-            case PlayerRole.SPECTATOR -> throw new IllegalStateException();
         };
 
         this.chatManager = new ChatManager(client, isBroadcasting, username);
@@ -116,6 +124,10 @@ public class GameManager implements Runnable {
             netInfoFrame.dispose();
         } else if (client instanceof GameJoinerClient peerClient) {
             if (!peerClient.connectToHost()) {
+                throw new IOException();
+            }
+        } else if (client instanceof GameSpectatorClient spectatorClient) {
+            if (!spectatorClient.connectToHost()) {
                 throw new IOException();
             }
         }
@@ -143,7 +155,8 @@ public class GameManager implements Runnable {
                 () -> new IncompatiblePeerException("'" + battleSetup.pokemonName() + "' is not implemented"));
         StatBoosts enemyStatBoosts = battleSetup.statBoosts();
 
-        this.battleManager = new BattleManager(client, ownPokemon, ownStatBoosts, enemyPokemon, enemyStatBoosts);
+        this.battleManager = new BattleManager(client, client instanceof GameSpectatorClient, ownPokemon, ownStatBoosts,
+                enemyPokemon, enemyStatBoosts);
     }
 
     @Override
