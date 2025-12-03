@@ -360,12 +360,12 @@ public class BattleManager implements Runnable {
                     isFirstRun = false;
                 }
 
-                int enemyCurrHP = (isOwnTurn ? hostPokemon : joinerPokemon).getCurrentHP()
+                int enemyCurrHP = (isOwnTurn ? joinerPokemon : hostPokemon).getCurrentHP()
                         - calculationReport.damageDealt();
                 boolean isKnockedOut = enemyCurrHP <= 0;
 
-                (isOwnTurn ? hostPokemon : joinerPokemon)
-                        .decreaseHP(isKnockedOut ? (isOwnTurn ? hostPokemon : joinerPokemon).getCurrentHP()
+                (isOwnTurn ? joinerPokemon : hostPokemon)
+                        .decreaseHP(isKnockedOut ? (isOwnTurn ? joinerPokemon : hostPokemon).getCurrentHP()
                                 : calculationReport.damageDealt());
 
                 gamePanel.repaint();
