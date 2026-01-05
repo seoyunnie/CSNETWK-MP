@@ -83,7 +83,7 @@ public class ChatManager implements Runnable {
                 SwingUtilities.invokeLater(() -> {
                     inField.setText("");
 
-                    if (!isBroadcasting || !(gameClient instanceof GameSpectatorClient)) {
+                    if (!(gameClient instanceof GameSpectatorClient)) {
                         panel.appendChatMessage(username, msg);
                     }
                 });
@@ -114,7 +114,7 @@ public class ChatManager implements Runnable {
                     client.sendSticker(sticker, spectatorClient.getHost().address());
                 }
 
-                if (!isBroadcasting || !(gameClient instanceof GameSpectatorClient)) {
+                if (!(gameClient instanceof GameSpectatorClient)) {
                     SwingUtilities.invokeLater(() -> panel.appendChatMessage(username, sticker));
                 }
             } catch (IOException e) {
