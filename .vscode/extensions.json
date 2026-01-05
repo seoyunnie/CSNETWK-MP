@@ -1,0 +1,11 @@
+{
+  "recommendations": [
+    "editorconfig.editorconfig",
+
+    /* Java */
+    "vscjava.vscode-java-pack",
+
+    /* XML */
+    "redhat.vscode-xml"
+  ]
+}
