@@ -1,9 +1,7 @@
 package seoyunnie.pokeprotocol.game;
 
 public enum PlayerRole {
-    HOST,
-    JOINER,
-    SPECTATOR;
+    HOST, JOINER, SPECTATOR;
 
     @Override
     public String toString() {
