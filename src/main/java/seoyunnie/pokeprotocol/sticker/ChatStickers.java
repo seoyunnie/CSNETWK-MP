@@ -6,8 +6,8 @@ import java.util.List;
 public final class ChatStickers {
     private static final List<Sticker> STICKERS = new ArrayList<>();
 
-    public static final Sticker WOBBUFFET_MARU = add(new Sticker("wobbuffet_maru"));
-    public static final Sticker WOBBUFFET_BATSU = add(new Sticker("wobbuffet_batsu"));
+    public static final Sticker WOBBUFFET_MARU = add(new Sticker("wobbuffet-maru"));
+    public static final Sticker WOBBUFFET_BATSU = add(new Sticker("wobbuffet-batsu"));
 
     private ChatStickers() {}
 
