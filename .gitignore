@@ -1,8 +1,11 @@
-# Editor Settings
-.vscode/
+# VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/java-formatter.xml
 
-# Build Outputs
-**/target/
+# Maven
+target/
 
-# Miscellaneous
+# macOS
 **/.DS_Store
